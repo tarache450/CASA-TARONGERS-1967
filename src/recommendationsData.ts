@@ -81,7 +81,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
       es: 'Historia y Cultura',
       en: 'History & Culture'
     },
-    image: '/src/assets/images/activity_gelida_castle_1784213853819.jpg',
+    image: '/images/activity_gelida_castle_1784213853819.jpg',
     description: {
       ca: 'El Castell de Gelida és un castell medieval documentat des de l\'any 945 que s\'alça majestuosament sobre un espadat rocós controlant el pas de la vall. Ofereix una de les vistes panoràmiques més espectaculars de l\'Alt Penedès i de la silueta retallada de la muntanya de Montserrat.',
       es: 'El Castillo de Gelida es un castillo medieval documentado desde el año 945 que se alza majestuosamente sobre un acantilado rocoso controlando el paso del valle. Ofrece una de las vistas panorámicas más espectaculares del Alt Penedès y de la silueta recortada de la montaña de Montserrat.',
@@ -142,7 +142,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
       es: 'Enoturismo y Gastronomía',
       en: 'Enotourism & Gastronomy'
     },
-    image: '/src/assets/images/activity_cava_wineries_1784213869706.jpg',
+    image: '/images/activity_cava_wineries_1784213869706.jpg',
     description: {
       ca: 'Gelida i la veïna capital del cava Sant Sadurní d\'Anoia configuren el cor històric de la D.O. Cava. La comarca allotja cellers familiars de producció biodinàmica de primeríssim nivell, així com grans catedrals modernistes del vi dissenyades per arquitectes com Josep Puig i Cadafalch.',
       es: 'Gelida y la vecina capital del cava, Sant Sadurní d\'Anoia, configuran el corazón histórico de la D.O. Cava. La comarca alberga bodegas familiares de producción biodinámica de primerísimo nivel, así como grandes catedrales modernistas del vino diseñadas por arquitectos como Josep Puig i Cadafalch.',
@@ -203,7 +203,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
       es: 'Naturaleza y Espiritualidad',
       en: 'Nature & Spirituality'
     },
-    image: '/src/assets/images/activity_montserrat_1784213884983.jpg',
+    image: '/images/activity_montserrat_1784213884983.jpg',
     description: {
       ca: 'Montserrat és un massís muntanyós únic al món per les seves formes arrodonides i capritxoses de conglomerat, esculpides pel vent i l\'aigua durant milions d\'anys. Allotja el Santuari de la Mare de Déu de Montserrat i el monestir benedictí homònim, lloc de pelegrinatge i símbol d\'identitat catalana.',
       es: 'Montserrat es un macizo montañoso único en el mundo por sus formas redondeadas y caprichosas de conglomerado, esculpidas por el viento y el agua durante millones de años. Alberga el Santuario de la Virgen de Montserrat y el monasterio benedictino homónimo, lugar de peregrinación y símbolo de identidad catalana.',
@@ -264,7 +264,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
       es: 'Mar y Estilo de Vida',
       en: 'Sea & Lifestyle'
     },
-    image: '/src/assets/images/activity_sitges_1784213899770.jpg',
+    image: '/images/activity_sitges_1784213899770.jpg',
     description: {
       ca: 'Sitges és una bonica vila costanera famosa per la seva llum enlluernadora, els seus carrers estrets plens de flors, la seva herència artística de l\'època del Modernisme i les seves platges urbanes de sorra fina i aigües tranquil·les de la Costa del Garraf.',
       es: 'Sitges es una hermosa villa costera famosa por su luz deslumbrante, sus calles estrechas llenas de flores, su herencia artística de la época del Modernismo y sus playas urbanas de arena fina y aguas tranquilas de la Costa del Garraf.',

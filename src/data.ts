@@ -1,4 +1,4 @@
-import { Booking, Payment, PropertySettings, Amenity } from './types';
+import { Booking, Payment, PropertySettings, Amenity, GalleryImage } from './types';
 
 export const INITIAL_PROPERTY_SETTINGS: PropertySettings = {
   basePrice: 250, // per night (euros)
@@ -11,14 +11,14 @@ export const INITIAL_PROPERTY_SETTINGS: PropertySettings = {
 };
 
 export const IMAGES = {
-  hero: '/src/assets/images/casa_tarongers_hero_1784209307332.jpg',
-  pool: '/src/assets/images/casa_tarongers_pool_1784209324340.jpg',
-  living: '/src/assets/images/casa_tarongers_living_1784209336640.jpg',
-  garden: '/src/assets/images/casa_tarongers_garden_1784209349861.jpg',
-  bedroom: '/src/assets/images/casa_tarongers_bedroom_1784214032055.jpg',
-  kitchen: '/src/assets/images/casa_tarongers_kitchen_1784214046842.jpg',
-  bathroom: '/src/assets/images/casa_tarongers_bathroom_1784214061880.jpg',
-  tennis: '/src/assets/images/casa_tarongers_tennis_1784214077486.jpg'
+  hero: '/images/Exteriors/Exteriors  003.jpg',
+  pool: '/images/Exteriors/Exteriors  004.jpg',
+  living: '/images/Exteriors/Exteriors  012.jpg',
+  garden: '/images/Exteriors/Exteriors  002.jpg',
+  bedroom: '/images/Exteriors/Exteriors  012.jpg',
+  kitchen: '/images/Exteriors/Exteriors  012.jpg',
+  bathroom: '/images/Exteriors/Exteriors  008.jpg',
+  tennis: '/images/Exteriors/Exteriors  002.jpg'
 };
 
 export const AMENITIES: Amenity[] = [
@@ -58,87 +58,87 @@ export const INITIAL_BOOKINGS: Booking[] = [
     checkIn: '2026-07-11',
     checkOut: '2026-07-15',
     guestsCount: 8,
-    totalPrice: 0,
-    status: 'Family Use',
+    totalPrice: 1400,
+    status: 'Confirmed',
     paymentStatus: 'Paid',
-    paymentMethod: 'None',
-    notes: 'Blocked for the family mid-summer get-together. Need garden set ready.',
-    createdAt: '2026-05-10T08:00:00Z'
+    paymentMethod: 'Bizum',
+    notes: 'Reserva familiar anual. Se necesita cuna adicional.',
+    createdAt: '2026-06-18T14:20:00Z'
   },
   {
     id: 'B003',
     guestName: 'Sofia Lindqvist',
-    guestEmail: 'sofia.l@nordicdesign.se',
-    guestPhone: '+46 8 123 45 67',
+    guestEmail: 'sofia.l@nordic-travel.se',
+    guestPhone: '+46 70 987 6543',
     checkIn: '2026-07-18',
     checkOut: '2026-07-25',
     guestsCount: 6,
-    totalPrice: 2360, // 7 nights * 320 (high season) + 120 cleaning
+    totalPrice: 2360, // High season: 7 * 320 + 120
     status: 'Confirmed',
     paymentStatus: 'Paid',
     paymentMethod: 'Card',
-    notes: 'Requested pool towels and baby cot.',
-    createdAt: '2026-06-20T14:15:00Z'
+    notes: 'Family vacation from Sweden. Requested early check-in if available.',
+    createdAt: '2026-06-20T09:15:00Z'
   },
   {
     id: 'B004',
     guestName: 'Mark Webber',
-    guestEmail: 'mark.webber@ozspeed.com',
-    guestPhone: '+61 2 9876 5432',
+    guestEmail: 'mwebber@ozmail.com.au',
+    guestPhone: '+61 412 345 678',
     checkIn: '2026-08-01',
     checkOut: '2026-08-10',
-    guestsCount: 5,
-    totalPrice: 3000, // 9 nights * 320 (high season) + 120 cleaning
+    guestsCount: 10,
+    totalPrice: 3000, // High season
     status: 'Confirmed',
     paymentStatus: 'Paid',
     paymentMethod: 'Bank Transfer',
-    notes: 'Enquiring about bicycle rentals in Gelida.',
-    createdAt: '2026-06-28T09:12:00Z'
+    notes: 'Full house capacity booking. Wedding anniversary celebration.',
+    createdAt: '2026-06-28T16:45:00Z'
   },
   {
     id: 'B005',
-    guestName: 'Vacaciones de Abuelos (Santi & Maria)',
-    guestEmail: 'santi.tarongers@coac.net',
-    guestPhone: '+34 629 30 85 70',
-    checkIn: '2026-08-14',
+    guestName: 'Familia Alsius',
+    guestEmail: 'alsius.fam@coac.cat',
+    guestPhone: '+34 600 99 88 77',
+    checkIn: '2026-08-15',
     checkOut: '2026-08-20',
-    guestsCount: 4,
-    totalPrice: 0,
-    status: 'Family Use',
+    guestsCount: 5,
+    totalPrice: 1720,
+    status: 'Confirmed',
     paymentStatus: 'Paid',
-    paymentMethod: 'None',
-    notes: 'Blocked for family use - grandparents rest days.',
-    createdAt: '2026-04-01T12:00:00Z'
+    paymentMethod: 'Bank Transfer',
+    notes: 'Amics de la família. Sol·liciten accés a la pista de tennis.',
+    createdAt: '2026-07-02T11:00:00Z'
   },
   {
     id: 'B006',
     guestName: 'Sarah Jenkins',
-    guestEmail: 'sarah.j@example.com',
-    guestPhone: '+1 (555) 000-0000',
+    guestEmail: 'sarah.j@londontech.co.uk',
+    guestPhone: '+44 7700 900077',
     checkIn: '2026-08-22',
     checkOut: '2026-08-29',
-    guestsCount: 4,
-    totalPrice: 2360, // 7 nights * 320 + 120 cleaning
-    status: 'Pending',
+    guestsCount: 6,
+    totalPrice: 2360,
+    status: 'Confirmed',
     paymentStatus: 'Pending',
     paymentMethod: 'Bizum',
-    notes: 'Pending confirmation of Bizum payment advance.',
-    createdAt: '2026-07-15T18:40:00Z'
+    notes: 'Awaiting final transfer verification.',
+    createdAt: '2026-07-10T15:30:00Z'
   },
   {
     id: 'B007',
     guestName: 'Lucas Rossi',
     guestEmail: 'lucas.rossi@milano.it',
-    guestPhone: '+39 333 456 7890',
+    guestPhone: '+39 335 123 4567',
     checkIn: '2026-09-05',
     checkOut: '2026-09-12',
-    guestsCount: 6,
-    totalPrice: 1870, // 7 nights * 250 + 120 cleaning
+    guestsCount: 4,
+    totalPrice: 1870,
     status: 'Confirmed',
     paymentStatus: 'Pending',
     paymentMethod: 'Bank Transfer',
-    notes: 'Bank transfer is sent, waiting for it to arrive on account.',
-    createdAt: '2026-07-10T11:00:00Z'
+    notes: 'Wine tasting trip in Penedès.',
+    createdAt: '2026-07-11T08:50:00Z'
   }
 ];
 
@@ -187,5 +187,120 @@ export const INITIAL_PAYMENTS: Payment[] = [
     method: 'Bizum',
     status: 'Pending',
     date: '2026-07-15'
+  }
+];
+
+export const ALL_GALLERY_IMAGES: GalleryImage[] = [
+  {
+    src: '/images/Exteriors/Exteriors  003.jpg',
+    category: 'exteriors',
+    alt: {
+      ca: 'Vista principal de Casa Tarongers',
+      es: 'Vista principal de Casa Tarongers',
+      en: 'Main view of Casa Tarongers'
+    },
+    desc: {
+      ca: 'Façana principal i jardí amb ginkgo biloba i palmeres.',
+      es: 'Fachada principal y jardín con ginkgo biloba y palmeras.',
+      en: 'Main facade and garden with ginkgo biloba and palm trees.'
+    }
+  },
+  {
+    src: '/images/Exteriors/Exteriors  002.jpg',
+    category: 'exteriors',
+    alt: {
+      ca: 'Camí del jardí a Casa Tarongers',
+      es: 'Camino del jardín en Casa Tarongers',
+      en: 'Garden path at Casa Tarongers'
+    },
+    desc: {
+      ca: 'Camí de pedra rodejat d\'arbres i vegetació exuberant.',
+      es: 'Camino de piedra rodeado de árboles y exuberante vegetación.',
+      en: 'Stone path surrounded by trees and lush vegetation.'
+    }
+  },
+  {
+    src: '/images/Exteriors/Exteriors  004.jpg',
+    category: 'exteriors',
+    alt: {
+      ca: 'Vista de la finca des de la gespa',
+      es: 'Vista de la finca desde el césped',
+      en: 'Estate view from the lawn'
+    },
+    desc: {
+      ca: 'Àmplia gespa i arbres d\'avet i ginkgo a la finca.',
+      es: 'Amplio césped y variedad de árboles en la finca.',
+      en: 'Spacious lawn and mature trees across the estate.'
+    }
+  },
+  {
+    src: '/images/Exteriors/Exteriors  012.jpg',
+    category: 'interiors',
+    alt: {
+      ca: 'Porxo acollidor amb vistes al jardí',
+      es: 'Porche acogedor con vistas al jardín',
+      en: 'Cozy porch with garden views'
+    },
+    desc: {
+      ca: 'Espai interior amb grans finestrals de fusta cap al jardí.',
+      es: 'Espacio interior con grandes ventanales de madera hacia el jardín.',
+      en: 'Interior space with large wooden windows overlooking the garden.'
+    }
+  },
+  {
+    src: '/images/Exteriors/Exteriors  008.jpg',
+    category: 'exteriors',
+    alt: {
+      ca: 'Jardí posterior i escales de pedra',
+      es: 'Jardín posterior y escaleras de piedra',
+      en: 'Back garden and stone stairs'
+    },
+    desc: {
+      ca: 'Rincón acollidor del jardí amb avet centenari i escales.',
+      es: 'Rincón acogedor del jardín con gran abeto y escaleras de piedra.',
+      en: 'Cozy garden corner with mature pine tree and stone stairs.'
+    }
+  },
+  {
+    src: '/images/Panoramiques Exteriors/Pan Exteriors  031.jpg',
+    category: 'panoramic',
+    alt: {
+      ca: 'Vista panoràmica del porxo i taula exterior',
+      es: 'Vista panorámica del porche y mesa exterior',
+      en: 'Panoramic view of the porch and outdoor table'
+    },
+    desc: {
+      ca: 'Àmplia perspectiva del porxo de fusta amb taula de menjador exterior i grans arbres.',
+      es: 'Amplia perspectiva del porche de madera con mesa de comedor exterior y árboles maduros.',
+      en: 'Wide perspective of the wooden porch with outdoor dining table and mature trees.'
+    }
+  },
+  {
+    src: '/images/Panoramiques Exteriors/Pan Exteriors  037.jpg',
+    category: 'panoramic',
+    alt: {
+      ca: 'Vista panoràmica lateral de la façana de pedra',
+      es: 'Vista panorámica lateral de la fachada de piedra',
+      en: 'Panoramic side view of the stone facade'
+    },
+    desc: {
+      ca: 'Panoràmica de la terrassa porxada de pedra i vegetació enfiladissa.',
+      es: 'Panorámica de la terraza porchada de piedra y vegetación trepadora.',
+      en: 'Panoramic view of the stone porch terrace and climbing vines.'
+    }
+  },
+  {
+    src: '/images/Panoramiques Exteriors/Pan Exteriors  039.jpg',
+    category: 'panoramic',
+    alt: {
+      ca: 'Vista panoràmica frontal de la finca',
+      es: 'Vista panorámica frontal de la finca',
+      en: 'Panoramic front view of the estate'
+    },
+    desc: {
+      ca: 'Vista completa de la façana de pedra, ginkgo biloba daurat i palmeres des del jardí.',
+      es: 'Vista completa de la fachada de piedra, ginkgo biloba dorado y palmeras desde el jardín.',
+      en: 'Full view of the stone facade, golden ginkgo biloba, and palm trees from the lawn.'
+    }
   }
 ];

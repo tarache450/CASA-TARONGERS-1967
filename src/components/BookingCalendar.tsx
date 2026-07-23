@@ -70,6 +70,11 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
   const [formError, setFormError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Cooperative stay states
+  const [stayType, setStayType] = useState<'guest' | 'family'>('guest');
+  const [familyPin, setFamilyPin] = useState('');
+  const [isPinVerified, setIsPinVerified] = useState(false);
+
   // Payment Selection States
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('Card');
   const [checkoutStep, setCheckoutStep] = useState<'form' | 'checkout' | 'success'>('form');
@@ -157,12 +162,19 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
   };
 
   // Check if a range has any booked/family days
+  // Check if a range has any booked/family days
   const isRangeBlocked = (start: string, end: string): boolean => {
-    let current = new Date(start);
-    const targetEnd = new Date(end);
+    const [sYear, sMonth, sDay] = start.split('-').map(Number);
+    const [eYear, eMonth, eDay] = end.split('-').map(Number);
+    
+    let current = new Date(sYear, sMonth - 1, sDay);
+    const targetEnd = new Date(eYear, eMonth - 1, eDay);
 
     while (current < targetEnd) {
-      const dateStr = current.toISOString().split('T')[0];
+      const yyyy = current.getFullYear();
+      const mm = String(current.getMonth() + 1).padStart(2, '0');
+      const dd = String(current.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
       const { status } = getDateStatus(dateStr);
       if (status !== 'available') {
         return true;
@@ -175,8 +187,10 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
   // Calculate Nights
   const getNightsCount = () => {
     if (!checkIn || !checkOut) return 0;
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
+    const [sYear, sMonth, sDay] = checkIn.split('-').map(Number);
+    const [eYear, eMonth, eDay] = checkOut.split('-').map(Number);
+    const start = new Date(sYear, sMonth - 1, sDay);
+    const end = new Date(eYear, eMonth - 1, eDay);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
@@ -184,19 +198,26 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
   // Price Calculation
   const nights = getNightsCount();
   const isHighSeason = (dateStr: string) => {
-    const m = new Date(dateStr).getMonth();
-    return m === 6 || m === 7; // July or August
+    const parts = dateStr.split('-');
+    if (parts.length < 2) return false;
+    const m = parseInt(parts[1], 10) - 1;
+    return m === 6 || m === 7; // July (6) or August (7)
   };
 
   const calculateTotal = () => {
     if (!checkIn || !checkOut) return 0;
+    if (stayType === 'family') return 0;
     let total = 0;
-    let current = new Date(checkIn);
-    const targetEnd = new Date(checkOut);
+    
+    const [sYear, sMonth, sDay] = checkIn.split('-').map(Number);
+    const [eYear, eMonth, eDay] = checkOut.split('-').map(Number);
+    
+    let current = new Date(sYear, sMonth - 1, sDay);
+    const targetEnd = new Date(eYear, eMonth - 1, eDay);
 
     while (current < targetEnd) {
-      const dateStr = current.toISOString().split('T')[0];
-      const pricePerNight = isHighSeason(dateStr) ? settings.highSeasonPrice : settings.basePrice;
+      const m = current.getMonth();
+      const pricePerNight = (m === 6 || m === 7) ? settings.highSeasonPrice : settings.basePrice;
       total += pricePerNight;
       current.setDate(current.getDate() + 1);
     }
@@ -330,20 +351,46 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
     setFormError('');
 
     if (!checkIn || !checkOut) {
-      setFormError('Por favor selecciona las fechas de entrada y salida en el calendario.');
+      setFormError(language === 'ca' ? 'Si us plau, selecciona les dates d\'entrada i sortida al calendari.' : language === 'en' ? 'Please select check-in and check-out dates on the calendar.' : 'Por favor selecciona las fechas de entrada y salida en el calendario.');
       return;
     }
     if (!guestName || !guestEmail || !guestPhone) {
-      setFormError('Por favor completa todos los campos de contacto.');
+      setFormError(language === 'ca' ? 'Si us plau, omple tots els camps de contacte.' : language === 'en' ? 'Please complete all contact fields.' : 'Por favor completa todos los campos de contacto.');
       return;
     }
 
     if (isRangeBlocked(checkIn, checkOut)) {
-      setFormError('El rango seleccionado ya está reservado o bloqueado.');
+      setFormError(language === 'ca' ? 'El rang seleccionat ja està reservat o bloquejat.' : language === 'en' ? 'The selected dates are already booked or blocked.' : 'El rango seleccionado ya está reservado o bloqueado.');
       return;
     }
 
-    // Set defaults and prepare checkout
+    if (stayType === 'family') {
+      if (!isPinVerified) {
+        setFormError(language === 'ca' ? 'Heu de verificar el PIN familiar primer.' : language === 'en' ? 'You must verify the family PIN first.' : 'Debes verificar el PIN familiar primero.');
+        return;
+      }
+
+      // Complete family registration directly
+      onAddBooking({
+        guestName,
+        guestEmail,
+        guestPhone,
+        checkIn,
+        checkOut,
+        guestsCount,
+        totalPrice: 0,
+        status: 'Family Use',
+        paymentStatus: 'Paid',
+        paymentMethod: 'None',
+        notes: notes ? `[Familiar] ${notes}` : '[Familiar]'
+      });
+
+      setCheckoutStep('success');
+      setIsSuccess(true);
+      return;
+    }
+
+    // Set defaults and prepare checkout for guest stay
     setBizumPhone(guestPhone);
     setTransferRef(generateReferenceCode());
     setCheckoutStep('checkout');
@@ -444,6 +491,9 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
     setUploadedReceipt(null);
     setCheckoutStep('form');
     setIsSuccess(false);
+    setStayType('guest');
+    setFamilyPin('');
+    setIsPinVerified(false);
   };
 
   // Generate calendar days grid
@@ -500,7 +550,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
   };
 
   return (
-    <section id="reservas" className="py-24 bg-[#FAFAF5] border-b border-[#E5E1D8]">
+    <section id="reservas" className="py-24 bg-[#FAFAF5] border-b border-[#E5E1D8] scroll-mt-20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <span className="text-stone-500 text-xs uppercase tracking-[0.25em] font-sans block">
@@ -642,6 +692,88 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                   </motion.div>
                 )}
                 <div className="space-y-4">
+                  {/* Stay Type Selection (Cooperative vs Guest) */}
+                  <div className="space-y-2.5 p-4 bg-stone-50 border border-stone-200">
+                    <label className="block text-[9px] font-sans uppercase tracking-[0.15em] text-stone-500 font-bold">
+                      {t.stayTypeLabel}
+                    </label>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStayType('guest');
+                          setIsPinVerified(false);
+                          setFamilyPin('');
+                          setFormError('');
+                        }}
+                        className={`py-2 px-3 text-[10px] font-sans uppercase tracking-wider font-semibold border text-center transition-all cursor-pointer ${
+                          stayType === 'guest'
+                            ? 'bg-stone-900 border-stone-900 text-white shadow-xs'
+                            : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        {t.stayTypeGuest}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStayType('family');
+                          setFormError('');
+                        }}
+                        className={`py-2 px-3 text-[10px] font-sans uppercase tracking-wider font-semibold border text-center transition-all cursor-pointer ${
+                          stayType === 'family'
+                            ? 'bg-stone-900 border-stone-900 text-white shadow-xs'
+                            : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        {t.stayTypeFamily}
+                      </button>
+                    </div>
+
+                    {/* Family PIN input if type === 'family' */}
+                    <AnimatePresence>
+                      {stayType === 'family' && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden space-y-2"
+                        >
+                          <div className="h-[1px] bg-stone-200 my-2" />
+                          <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">
+                            {t.familyPinLabel}
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              maxLength={4}
+                              value={familyPin}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setFamilyPin(val);
+                                if (val === '1967') {
+                                  setIsPinVerified(true);
+                                  setFormError('');
+                                } else {
+                                  setIsPinVerified(false);
+                                }
+                              }}
+                              placeholder={t.familyPinPlaceholder}
+                              className="w-full bg-white border border-stone-200 rounded-none px-4 py-2.5 text-xs text-stone-850 focus:outline-none tracking-widest text-center"
+                            />
+                          </div>
+                          {familyPin.length === 4 && (
+                            <p className={`text-[10px] font-medium font-sans ${isPinVerified ? 'text-emerald-600 font-bold' : 'text-red-500'}`}>
+                              {isPinVerified ? t.familyPinSuccess : t.familyPinError}
+                            </p>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <div>
                     <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">{t.calFullName}</label>
                     <input
@@ -700,24 +832,34 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">{language === 'ca' ? 'Mètode de Pagament' : language === 'en' ? 'Payment Method' : 'Método de Pago'}</label>
-                      <div className="relative">
-                        <CreditCard className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                        <select
-                          value={selectedPaymentMethod}
-                          onChange={(e) => setSelectedPaymentMethod(e.target.value as PaymentMethod)}
-                          className="w-full bg-white border border-stone-200 rounded-none pl-10 pr-8 py-2.5 text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-accent-terracotta focus:border-accent-terracotta appearance-none cursor-pointer font-sans"
-                        >
-                          <option value="Card">{language === 'ca' ? 'Targeta de Crèdit' : language === 'en' ? 'Credit Card' : 'Tarjeta de Crédito'}</option>
-                          <option value="Apple Pay">Apple Pay</option>
-                          <option value="Google Pay">Google Pay</option>
-                          <option value="Bizum">Bizum</option>
-                          <option value="Bank Transfer">{language === 'ca' ? 'Transferència Bancària' : language === 'en' ? 'Bank Transfer' : 'Transferencia Bancaria'}</option>
-                        </select>
-                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none w-2 h-2 border-r border-b border-stone-500 rotate-45" />
+                    {stayType === 'guest' ? (
+                      <div>
+                        <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">{language === 'ca' ? 'Mètode de Pagament' : language === 'en' ? 'Payment Method' : 'Método de Pago'}</label>
+                        <div className="relative">
+                          <CreditCard className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                          <select
+                            value={selectedPaymentMethod}
+                            onChange={(e) => setSelectedPaymentMethod(e.target.value as PaymentMethod)}
+                            className="w-full bg-white border border-stone-200 rounded-none pl-10 pr-8 py-2.5 text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-accent-terracotta focus:border-accent-terracotta appearance-none cursor-pointer font-sans"
+                          >
+                            <option value="Card">{language === 'ca' ? 'Targeta de Crèdit' : language === 'en' ? 'Credit Card' : 'Tarjeta de Crédito'}</option>
+                            <option value="Apple Pay">Apple Pay</option>
+                            <option value="Google Pay">Google Pay</option>
+                            <option value="Bizum">Bizum</option>
+                            <option value="Bank Transfer">{language === 'ca' ? 'Transferència Bancària' : language === 'en' ? 'Bank Transfer' : 'Transferencia Bancaria'}</option>
+                          </select>
+                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none w-2 h-2 border-r border-b border-stone-500 rotate-45" />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div>
+                        <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">{language === 'ca' ? 'Registre Familiar' : language === 'en' ? 'Family Registry' : 'Registro Familiar'}</label>
+                        <div className="w-full bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-xs text-emerald-700 font-semibold font-sans flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{language === 'ca' ? 'Ús Familiar Autoritza' : language === 'en' ? 'Authorized Family Use' : 'Uso Familiar Autorizado'}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -748,7 +890,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                   className="w-full bg-accent-terracotta hover:bg-accent-terracotta-hover text-white py-4 px-6 rounded-none text-xs font-semibold uppercase tracking-widest shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer mt-2 hover:scale-[1.01]"
                 >
                   <CalendarIcon className="w-4 h-4" />
-                  <span>{t.calPayBtn}</span>
+                  <span>{stayType === 'family' ? t.familyRegisterBtn : t.calPayBtn}</span>
                 </button>
 
                 <p className="text-[10px] text-center text-stone-400 mt-4 tracking-wider uppercase leading-relaxed">
@@ -803,7 +945,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                   <div className="space-y-4 font-sans text-xs text-stone-700">
                     <div className="flex justify-between py-2 border-b border-stone-200/60">
                       <span className="text-stone-400">{language === 'ca' ? 'Casa Rústica' : language === 'en' ? 'Country House' : 'Casa Rústica'}</span>
-                      <span className="font-semibold text-stone-900">Casa Tarongers 1967</span>
+                      <span className="font-semibold text-stone-900">Casa Tarongers</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-stone-200/60">
                       <span className="text-stone-400">{t.calCheckIn}</span>
@@ -1040,7 +1182,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                           <div className="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-950 p-6 text-white flex flex-col justify-between [backface-visibility:hidden]">
                             <div className="flex justify-between items-start">
                               <div className="space-y-1">
-                                <span className="text-[9px] tracking-widest text-stone-400 font-sans uppercase">CASA TARONGERS 1967</span>
+                                <span className="text-[9px] tracking-widest text-stone-400 font-sans uppercase">CASA TARONGERS</span>
                                 <div className="w-9 h-7 bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-300 rounded-[4px] opacity-95 flex items-center justify-center overflow-hidden">
                                   {/* Chip Lines */}
                                   <div className="grid grid-cols-3 gap-0.5 w-6 h-5 opacity-40">
@@ -1676,10 +1818,10 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                       : 'Tu solicitud ha sido registrada. Una vez confirmemos el abono de la transferencia, validaremos definitivamente tu estancia. ¡Gracias por confiar en nuestra villa!'
                 ) : (
                   language === 'ca' 
-                    ? 'Hem rebut el teu pagament amb total èxit. La teva reserva a Casa Tarongers 1967 queda pre-aprovada automàticament. Rebràs un correu electrònic detallat amb les dades d\'accés i la guia rústica en breus moments.' 
+                    ? 'Hem rebut el teu pagament amb total èxit. La teva reserva a Casa Tarongers queda pre-aprovada automàticament. Rebràs un correu electrònic detallat amb les dades d\'accés i la guia rústica en breus moments.' 
                     : language === 'en' 
-                      ? 'We have successfully received your payment. Your reservation at Casa Tarongers 1967 is automatically pre-approved. You will receive a detailed email with access data and the rustic guide in a few moments.' 
-                      : 'Hemos recibido tu pago con total éxito. Tu reserva en Casa Tarongers 1967 queda pre-aprovada automáticamente. Recibirás un correo electrónico detallado con los datos de acceso y la guía rústica en breves momentos.'
+                      ? 'We have successfully received your payment. Your reservation at Casa Tarongers is automatically pre-approved. You will receive a detailed email with access data and the rustic guide in a few moments.' 
+                      : 'Hemos recibido tu pago con total éxito. Tu reserva en Casa Tarongers queda pre-aprovada automáticamente. Recibirás un correo electrónico detallado con los datos de acceso y la guía rústica en breves momentos.'
                 )}
               </p>
 

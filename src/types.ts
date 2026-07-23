@@ -44,3 +44,18 @@ export interface Amenity {
   category: string;
   icon: string;
 }
+
+export interface GalleryImage {
+  src: string;
+  category: 'panoramic' | 'interiors' | 'exteriors';
+  alt: {
+    ca: string;
+    es: string;
+    en: string;
+  };
+  desc?: {
+    ca: string;
+    es: string;
+    en: string;
+  };
+}

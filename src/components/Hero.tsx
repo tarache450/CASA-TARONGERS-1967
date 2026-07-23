@@ -17,7 +17,7 @@ export default function Hero({ onSearchClick, language }: HeroProps) {
       <div className="absolute inset-0 z-0">
         <img
           src={IMAGES.hero}
-          alt="Casa Tarongers 1967 Hero View"
+          alt="Casa Tarongers Hero View"
           className="w-full h-full object-cover object-center scale-105 animate-subtle-zoom"
           referrerPolicy="no-referrer"
         />

@@ -128,6 +128,34 @@ export interface TranslationDict {
   footPrivacy: string;
   footTerms: string;
   footMadeWith: string;
+  // Gallery Filters & Mobile Nav
+  filterAll: string;
+  filterPanoramic: string;
+  filterInteriors: string;
+  filterExteriors: string;
+  showMore: string;
+  showLess: string;
+  menuOpen: string;
+  menuClose: string;
+
+  // Cooperative & Renovations
+  coopTitle: string;
+  coopSub: string;
+  coopDesc: string;
+  coopRenovationsTitle: string;
+  coopStatusCompleted: string;
+  coopStatusOngoing: string;
+  coopStatusPlanned: string;
+
+  // Booking Stay Types
+  stayTypeLabel: string;
+  stayTypeGuest: string;
+  stayTypeFamily: string;
+  familyPinLabel: string;
+  familyPinPlaceholder: string;
+  familyPinSuccess: string;
+  familyPinError: string;
+  familyRegisterBtn: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -140,15 +168,15 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     bookNow: 'RESERVA AHORA',
     web: 'Web Pública',
 
-    heroWelcome: 'Bienvenidos a Casa Tarongers 1967',
+    heroWelcome: 'Bienvenidos a Casa Tarongers',
     heroSub: 'Un oasis de tranquilidad familiar en Gelida',
     checkAvailability: 'Ver disponibilidad',
     charmlabel: 'Estancia rural con encanto',
 
-    aboutTitle: 'Casa Tarongers 1967',
+    aboutTitle: 'Casa Tarongers',
     entireHome: 'Casa Entera',
     capacityText: 'Capacidad 10 Personas',
-    descParagraph1: 'Casa Tarongers 1967 es una encantadora villa rural de dos plantas en Gelida, Penedès, Cataluña. Presenta una cálida fachada de piedra y estuco con contraventanas de madera, balcones y una terraza cubierta enmarcada por palmeras. Se encuentra rodeada de un amplio y exuberante césped con árboles maduros y arbustos florales que aportan sombra y absoluta privacidad.',
+    descParagraph1: 'Casa Tarongers es una encantadora villa rural de dos plantas en Gelida, Penedès, Cataluña. Presenta una cálida fachada de piedra y estuco con contraventanas de madera, balcones y una terraza cubierta enmarcada por palmeras. Se encuentra rodeada de un amplio y exuberante césped con árboles maduros y arbustos florales que aportan sombra y absoluta privacidad.',
     descParagraph2: 'La casa pertenece a una familia catalana que ha decidido abrir sus puertas para compartir este oasis de tranquilidad. Con detalles cuidados al milímetro, es el lugar idóneo tanto para desconectar bajo el sol mediterráneo como para organizar celebraciones familiares íntimas rodeados de viñedos y naturaleza.',
     whatOffers: 'Qué ofrece esta casa',
     pillBedrooms: 'Dormitorios',
@@ -249,7 +277,30 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     footRights: 'Todos los derechos reservados.',
     footPrivacy: 'Política de Privacidad',
     footTerms: 'Términos de Servicio',
-    footMadeWith: 'Hecho con amor por la familia ReneFiser'
+    footMadeWith: 'Hecho con amor por la familia ReneFiser',
+    filterAll: 'Todas las Fotos',
+    filterPanoramic: 'Panorámicas',
+    filterInteriors: 'Interiores',
+    filterExteriors: 'Exteriores',
+    showMore: 'Ver más fotos',
+    showLess: 'Ver menos fotos',
+    menuOpen: 'Abrir menú',
+    menuClose: 'Cerrar menú',
+    coopTitle: 'Fondo de Conservación & Mantenimiento',
+    coopSub: 'Modelo de Preservación Familiar',
+    coopDesc: 'Casa Tarongers fue levantada en 1967. Para preservar su arquitectura e historia, la familia gestiona la finca de forma cooperativa y no lucrativa. El 100% de las aportaciones de los invitados se destina exclusivamente a financiar las reformas necesarias, el mantenimiento del jardín y la mejora de las instalaciones.',
+    coopRenovationsTitle: 'Plan de Conservación y Reformas de la Finca',
+    coopStatusCompleted: 'Completado',
+    coopStatusOngoing: 'En curso',
+    coopStatusPlanned: 'Planificado',
+    stayTypeLabel: 'Tipo de Estancia',
+    stayTypeGuest: 'Invitado (Estancia con Aportación)',
+    stayTypeFamily: 'Familiar (Acceso Miembro de la Familia)',
+    familyPinLabel: 'Código PIN Familiar',
+    familyPinPlaceholder: 'Introduce el PIN de 4 dígitos',
+    familyPinSuccess: 'PIN verificado. Reserva familiar sin coste de mantenimiento.',
+    familyPinError: 'PIN familiar incorrecto.',
+    familyRegisterBtn: 'Registrar Estancia Familiar'
   },
   ca: {
     aboutHouse: 'Sobre la Casa',
@@ -260,15 +311,15 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     bookNow: 'RESERVA ARA',
     web: 'Web Pública',
 
-    heroWelcome: 'Benvinguts a Casa Tarongers 1967',
+    heroWelcome: 'Benvinguts a Casa Tarongers',
     heroSub: 'Un oasi de tranquil·litat familiar a Gelida',
     checkAvailability: 'Veure disponibilitat',
     charmlabel: 'Estada rural amb encant',
 
-    aboutTitle: 'Casa Tarongers 1967',
+    aboutTitle: 'Casa Tarongers',
     entireHome: 'Casa Sencera',
     capacityText: 'Capacitat 10 Persones',
-    descParagraph1: 'Casa Tarongers 1967 és una encantadora vil·la rural de dues plantes a Gelida, Penedès, Catalunya. Presenta una càlida façana de pedra i estuc amb tancaments de fusta, balcons i una terrassa coberta emmarcada per palmeres. Es troba enmig d\'una àmplia i exuberant gespa amb arbres madurs i arbustos florals que aporten ombra i absoluta privadesa.',
+    descParagraph1: 'Casa Tarongers és una encantadora vil·la rural de dues plantes a Gelida, Penedès, Catalunya. Presenta una càlida façana de pedra i estuc amb tancaments de fusta, balcons i una terrassa coberta emmarcada per palmeres. Es troba enmig d\'una àmplia i exuberant gespa amb arbres madurs i arbustos florals que aporten ombra i absoluta privadesa.',
     descParagraph2: 'La casa pertany a una família catalana que ha decidit obrir les seves portes per compartir aquest oasi de pau. Amb detalls cuidats al mil·límetre, és el lloc idoni tant per desconnectar sota el sol mediterrani com per organitzar celebracions familiars íntimes envoltades de vinyes i natura.',
     whatOffers: 'Què ofereix aquesta casa',
     pillBedrooms: 'Dormitoris',
@@ -369,7 +420,30 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     footRights: 'Tots els drets reservats.',
     footPrivacy: 'Política de Privadesa',
     footTerms: 'Termes de Servei',
-    footMadeWith: 'Fet amb amor per la família ReneFiser'
+    footMadeWith: 'Fet amb amor per la família ReneFiser',
+    filterAll: 'Totes les Fotos',
+    filterPanoramic: 'Panoràmiques',
+    filterInteriors: 'Interiors',
+    filterExteriors: 'Exteriors',
+    showMore: 'Veure més fotos',
+    showLess: 'Veure menys fotos',
+    menuOpen: 'Obrir menú',
+    menuClose: 'Tancar menú',
+    coopTitle: 'Fons de Conservació & Manteniment',
+    coopSub: 'Model de Preservació Familiar',
+    coopDesc: 'Casa Tarongers va ser aixecada el 1967. Per tal de preservar la seva arquitectura i història, la família gestiona la finca de forma cooperativa i no lucrativa. El 100% de les aportacions dels convidats es destina exclusivament a finançar les reformes necessàres, el manteniment del jardí i la millora de les instal·lacions.',
+    coopRenovationsTitle: 'Pla de Conservació i Reformes de la Finca',
+    coopStatusCompleted: 'Completat',
+    coopStatusOngoing: 'En curs',
+    coopStatusPlanned: 'Planificat',
+    stayTypeLabel: 'Tipus d\'Estada',
+    stayTypeGuest: 'Convidat (Estada amb Aportació)',
+    stayTypeFamily: 'Familiar (Accés Membre de la Família)',
+    familyPinLabel: 'Codi PIN Familiar',
+    familyPinPlaceholder: 'Introdueix el PIN de 4 dígits',
+    familyPinSuccess: 'PIN verificat. Reserva familiar sense cost de manteniment.',
+    familyPinError: 'PIN familiar incorrecte.',
+    familyRegisterBtn: 'Registrar Estada Familiar'
   },
   en: {
     aboutHouse: 'About',
@@ -380,15 +454,15 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     bookNow: 'BOOK NOW',
     web: 'Public Web',
 
-    heroWelcome: 'Welcome to Casa Tarongers 1967',
+    heroWelcome: 'Welcome to Casa Tarongers',
     heroSub: 'A peaceful family oasis in Gelida',
     checkAvailability: 'Check availability',
     charmlabel: 'Charming countryside stay',
 
-    aboutTitle: 'Casa Tarongers 1967',
+    aboutTitle: 'Casa Tarongers',
     entireHome: 'Entire Home',
     capacityText: 'Capacity 10 Guests',
-    descParagraph1: 'Casa Tarongers 1967 is a charming two-story country villa in Gelida, Penedès, Catalunya. It features a warm stone-and-stucco façade with wooden shutters, balconies, and a covered terrace framed by palm trees. Set amid a spacious, lush lawn with mature trees and flowering shrubs that offer shade and absolute privacy.',
+    descParagraph1: 'Casa Tarongers is a charming two-story country villa in Gelida, Penedès, Catalunya. It features a warm stone-and-stucco façade with wooden shutters, balconies, and a covered terrace framed by palm trees. Set amid a spacious, lush lawn with mature trees and flowering shrubs that offer shade and absolute privacy.',
     descParagraph2: 'The house belongs to a local Catalan family who has decided to open their doors to share this oasis of tranquility. Thoughtfully designed down to the very last detail, it is the ideal spot to disconnect under the Mediterranean sun or organize intimate family gatherings surrounded by vineyards and nature.',
     whatOffers: 'What this house offers',
     pillBedrooms: 'Bedrooms',
@@ -489,6 +563,29 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     footRights: 'All rights reserved.',
     footPrivacy: 'Privacy Policy',
     footTerms: 'Terms of Service',
-    footMadeWith: 'Made with love by the ReneFiser family'
+    footMadeWith: 'Made with love by the ReneFiser family',
+    filterAll: 'All Photos',
+    filterPanoramic: 'Panoramic',
+    filterInteriors: 'Interiors',
+    filterExteriors: 'Exteriors',
+    showMore: 'Show more photos',
+    showLess: 'Show less photos',
+    menuOpen: 'Open menu',
+    menuClose: 'Close menu',
+    coopTitle: 'Conservation & Maintenance Fund',
+    coopSub: 'Family Heritage Preservation Model',
+    coopDesc: 'Casa Tarongers was built in 1967. To preserve its architecture and history, the family manages the estate in a non-profit cooperative way. 100% of guest contributions are directly allocated to funding necessary renovations, garden landscaping, and property improvements.',
+    coopRenovationsTitle: 'Estate Conservation and Renovation Plan',
+    coopStatusCompleted: 'Completed',
+    coopStatusOngoing: 'In progress',
+    coopStatusPlanned: 'Planned',
+    stayTypeLabel: 'Stay Type',
+    stayTypeGuest: 'Guest Stay (With Maintenance Contribution)',
+    stayTypeFamily: 'Family Stay (Member Access Required)',
+    familyPinLabel: 'Family PIN Code',
+    familyPinPlaceholder: 'Enter 4-digit PIN code',
+    familyPinSuccess: 'PIN verified. Family stay with zero maintenance rate.',
+    familyPinError: 'Incorrect family PIN code.',
+    familyRegisterBtn: 'Register Family Stay'
   }
 };

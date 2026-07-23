@@ -1,6 +1,7 @@
-import React from 'react';
-import { Home, Lock, CalendarDays } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, Lock, CalendarDays, Menu, X } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../translations';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface NavbarProps {
   currentTab: 'guest' | 'dashboard';
@@ -11,8 +12,10 @@ interface NavbarProps {
 
 export default function Navbar({ currentTab, onChangeTab, language, onLanguageChange }: NavbarProps) {
   const t = TRANSLATIONS[language];
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollToId = (id: string) => {
+    setMobileMenuOpen(false);
     if (currentTab !== 'guest') {
       onChangeTab('guest');
       // Delay slightly to allow component to render before scrolling
@@ -112,8 +115,117 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
           >
             {t.bookNow}
           </button>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="lg:hidden p-2 text-stone-700 hover:text-stone-900 focus:outline-none transition-colors cursor-pointer"
+            aria-label={t.menuOpen}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-sm bg-stone-50 shadow-2xl p-6 flex flex-col justify-between border-l border-stone-200 lg:hidden"
+            >
+              <div className="space-y-8">
+                {/* Header inside drawer */}
+                <div className="flex justify-between items-center pb-6 border-b border-stone-200">
+                  <span className="text-sm tracking-[0.2em] font-light uppercase text-stone-900">
+                    Casa Tarongers <span className="font-semibold">1967</span>
+                  </span>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 text-stone-700 hover:text-stone-900 cursor-pointer"
+                    aria-label={t.menuClose}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Nav Links */}
+                <nav className="flex flex-col gap-6 text-sm tracking-widest uppercase text-stone-850">
+                  <button 
+                    onClick={() => scrollToId('sobre-casa')} 
+                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                  >
+                    {t.aboutHouse}
+                  </button>
+                  <button 
+                    onClick={() => scrollToId('servicios')} 
+                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                  >
+                    {t.services}
+                  </button>
+                  <button 
+                    onClick={() => scrollToId('galeria')} 
+                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                  >
+                    {t.gallery}
+                  </button>
+                  <button 
+                    onClick={() => scrollToId('ubicacion')} 
+                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                  >
+                    {t.location}
+                  </button>
+                  
+                  {/* Owner Portal Link */}
+                  <button 
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onChangeTab(currentTab === 'dashboard' ? 'guest' : 'dashboard');
+                      setTimeout(() => {
+                        const el = document.getElementById('gestion-familiar');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }}
+                    className={`flex items-center gap-2 py-3 hover:text-stone-900 transition-colors font-sans tracking-widest uppercase cursor-pointer ${currentTab === 'dashboard' ? 'text-stone-900 font-bold' : 'text-stone-500'}`}
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span>{currentTab === 'dashboard' ? t.web : t.familyDashboard}</span>
+                  </button>
+                </nav>
+              </div>
+
+              {/* Footer info in Drawer */}
+              <div className="pt-6 border-t border-stone-200 space-y-4">
+                {/* CTA Button in Drawer */}
+                <button
+                  onClick={() => scrollToId('reservas')}
+                  className="w-full text-center text-xs tracking-widest uppercase bg-accent-terracotta hover:bg-accent-terracotta-hover text-white py-4 rounded-[4px] shadow-sm font-sans font-medium transition-colors cursor-pointer"
+                >
+                  {t.bookNow}
+                </button>
+                
+                {/* Contact phone/email */}
+                <div className="text-[10px] text-stone-400 font-sans tracking-wider text-center">
+                  +34 629 30 85 70 • acivit@coac.net
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

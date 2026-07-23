@@ -32,7 +32,7 @@ export default function OwnerDashboard({
   const [showPin, setShowPin] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'payments' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'payments' | 'settings' | 'preservation'>('overview');
 
   // New manual booking state
   const [showAddForm, setShowAddForm] = useState(false);
@@ -89,10 +89,16 @@ export default function OwnerDashboard({
     const bookedDaysSet = new Set<string>();
 
     activeBookings.forEach(b => {
-      let current = new Date(b.checkIn);
-      const end = new Date(b.checkOut);
+      const [sYear, sMonth, sDay] = b.checkIn.split('-').map(Number);
+      const [eYear, eMonth, eDay] = b.checkOut.split('-').map(Number);
+      
+      let current = new Date(sYear, sMonth - 1, sDay);
+      const end = new Date(eYear, eMonth - 1, eDay);
       while (current < end) {
-        const dateStr = current.toISOString().split('T')[0];
+        const yyyy = current.getFullYear();
+        const mm = String(current.getMonth() + 1).padStart(2, '0');
+        const dd = String(current.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
         // Only count within July-Sept 2026
         if (dateStr >= '2026-07-01' && dateStr <= '2026-09-30') {
           bookedDaysSet.add(dateStr);
@@ -113,11 +119,13 @@ export default function OwnerDashboard({
     if (!start || !end) return 0;
     
     let total = 0;
-    let current = new Date(start);
-    const targetEnd = new Date(end);
+    const [sYear, sMonth, sDay] = start.split('-').map(Number);
+    const [eYear, eMonth, eDay] = end.split('-').map(Number);
+    
+    let current = new Date(sYear, sMonth - 1, sDay);
+    const targetEnd = new Date(eYear, eMonth - 1, eDay);
 
     while (current < targetEnd) {
-      const dateStr = current.toISOString().split('T')[0];
       const m = current.getMonth();
       const isHigh = m === 6 || m === 7; // July or August
       total += isHigh ? settings.highSeasonPrice : settings.basePrice;
@@ -213,13 +221,13 @@ export default function OwnerDashboard({
 
   if (!isAuthenticated) {
     return (
-      <section id="gestion-familiar" className="py-24 bg-[#2D2D2D] text-white min-h-[80vh] flex items-center justify-center relative">
+      <section id="gestion-familiar" className="py-24 bg-[#2D2D2D] text-white min-h-[80vh] flex items-center justify-center relative scroll-mt-20">
         <div className="max-w-md w-full px-6">
           <div className="text-center mb-10">
             <span className="text-stone-400 text-xs font-sans uppercase tracking-[0.2em] block mb-2">Acceso de Propietarios</span>
             <h2 className="text-3xl font-serif italic font-normal text-stone-100">Portal Familiar</h2>
             <p className="text-stone-300 text-xs mt-3 font-light leading-relaxed">
-              Área privada para que la familia administre el calendario, gestione el dinero y lleve el orden de Casa Tarongers 1967.
+              Área privada para que la familia administre el calendario, gestione el dinero y lleve el orden de Casa Tarongers.
             </p>
           </div>
 
@@ -278,7 +286,7 @@ export default function OwnerDashboard({
   }
 
   return (
-    <section id="gestion-familiar" className="py-16 bg-[#F9F7F2] min-h-screen text-stone-800 border-t border-[#E5E1D8]">
+    <section id="gestion-familiar" className="py-16 bg-[#F9F7F2] min-h-screen text-stone-800 border-t border-[#E5E1D8] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Dashboard Top Header */}
@@ -314,6 +322,7 @@ export default function OwnerDashboard({
             { id: 'bookings', name: 'Reservas & Bloqueos', icon: Calendar },
             { id: 'payments', name: 'Libro de Pagos', icon: CreditCard },
             { id: 'settings', name: 'Tarifas y Ajustes', icon: Sliders },
+            { id: 'preservation', name: 'Fondo y Reformas', icon: Receipt },
           ].map(tab => {
             const Icon = tab.icon;
             return (
@@ -844,7 +853,7 @@ export default function OwnerDashboard({
               <div className="bg-white border border-[#E5E1D8] p-8 max-w-2xl mx-auto rounded-none font-sans">
                 <div className="flex items-center gap-3 mb-6 border-b border-[#E5E1D8] pb-4">
                   <Sliders className="w-4 h-4 text-stone-800" />
-                  <h4 className="text-base font-serif italic text-stone-800">Tarifas y Ajustes de Casa Tarongers 1967</h4>
+                  <h4 className="text-base font-serif italic text-stone-800">Tarifas y Ajustes de Casa Tarongers</h4>
                 </div>
  
                 <form onSubmit={handleSaveSettings} className="space-y-6">
@@ -913,6 +922,77 @@ export default function OwnerDashboard({
                     </button>
                   </div>
                 </form>
+              </div>
+            )}
+
+            {/* TAB 5: PRESERVATION FUND & REFORMS LOG */}
+            {activeTab === 'preservation' && (
+              <div className="bg-white border border-[#E5E1D8] p-8 rounded-none space-y-6 text-left">
+                <div>
+                  <h3 className="text-xl font-serif font-bold text-stone-900 mb-2">Fondo de Conservación & Mantenimiento</h3>
+                  <p className="text-stone-600 text-xs leading-relaxed max-w-3xl font-light">
+                    Área familiar para planificar las mejoras físicas de Casa Tarongers. Los ingresos obtenidos de las reservas de invitados (recaudados a través del fondo de mantenimiento) se asignan íntegramente a estas reformas estructurales, de jardinería y sostenibilidad.
+                  </p>
+                </div>
+
+                <div className="h-[1px] bg-stone-200" />
+
+                <div className="space-y-4">
+                  <h4 className="text-xs uppercase tracking-wider font-bold text-stone-850 font-sans">
+                    Planificación y Estado de Reformas
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Reform 1 */}
+                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-semibold text-stone-800">Restauración de Contraventanas</p>
+                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Madera original de 1967 restaurada a mano y barnizada.</p>
+                      </div>
+                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 rounded border border-emerald-100 shrink-0">
+                        Completado
+                      </span>
+                    </div>
+
+                    {/* Reform 2 */}
+                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-semibold text-stone-800">Placas Solares (Energía Sostenible)</p>
+                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Instalación solar fotovoltaica para autoconsumo familiar.</p>
+                      </div>
+                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-amber-50 text-amber-700 rounded border border-amber-100 animate-pulse shrink-0">
+                        En Curso
+                      </span>
+                    </div>
+
+                    {/* Reform 3 */}
+                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-semibold text-stone-800">Pista de Tenis y Parque Infantil</p>
+                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Repavimentación de resina y zona de juegos infantil.</p>
+                      </div>
+                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-stone-100 text-stone-500 rounded border border-stone-200 shrink-0">
+                        Planificado
+                      </span>
+                    </div>
+
+                    {/* Reform 4 */}
+                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-semibold text-stone-800">Motor y Depuradora Ecológica</p>
+                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Cambio de bomba por una de bajo consumo y filtrado salino.</p>
+                      </div>
+                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 rounded border border-emerald-100 shrink-0">
+                        Completado
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-[#E5E1D8] flex items-center justify-between text-xs text-stone-500 font-sans">
+                  <span>Balance Acumulado para Reformas: <strong>€{totalRevenue.toLocaleString()}</strong></span>
+                  <span>Presupuesto Estimado Pendiente: <strong>€4,500</strong></span>
+                </div>
               </div>
             )}
           </motion.div>

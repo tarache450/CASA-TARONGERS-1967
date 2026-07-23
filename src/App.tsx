@@ -52,9 +52,13 @@ export default function App() {
       setSettings(JSON.parse(localSettings));
     } else {
       setSettings(INITIAL_PROPERTY_SETTINGS);
-      localStorage.setItem('tarongers_settings_v1', JSON.stringify(INITIAL_PROPERTY_SETTINGS));
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = 'Casa Tarongers';
+  }, [language]);
 
   // Save Bookings
   const saveBookingsState = (newBookings: Booking[]) => {
@@ -254,7 +258,7 @@ export default function App() {
               <div className="w-9 h-9 bg-accent-terracotta rounded-[4px] flex items-center justify-center text-white font-serif font-bold text-base">
                 CT
               </div>
-              <span className="font-serif text-lg font-bold tracking-wider text-white">Casa Tarongers 1967</span>
+              <span className="font-serif text-lg font-bold tracking-wider text-white">Casa Tarongers</span>
             </div>
             <p className="text-stone-300 text-sm max-w-sm leading-relaxed font-sans font-light">
               {ft.footDesc}
@@ -312,7 +316,7 @@ export default function App() {
         {/* Bottom Bar */}
         <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-stone-400">
           <div>
-            &copy; {new Date().getFullYear()} Casa Tarongers 1967. {ft.footRights}
+            &copy; {new Date().getFullYear()} Casa Tarongers. {ft.footRights}
           </div>
           <div className="flex gap-6">
             <a href="#about" className="hover:text-stone-200 transition-colors">{ft.footPrivacy}</a>

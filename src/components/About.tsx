@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { IMAGES } from '../data';
+import { IMAGES, ALL_GALLERY_IMAGES } from '../data';
+import { GalleryImage } from '../types';
 import { 
   Bed, Bath, ChefHat, Car, Waves, Tv, Wifi, Music, Activity, Trees, 
-  MapPin, Phone, Mail, Clock, ShieldCheck, ChevronRight, X, Compass, Info
+  MapPin, Phone, Mail, Clock, ShieldCheck, ChevronLeft, ChevronRight, X, Compass, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, TRANSLATIONS } from '../translations';
@@ -14,65 +15,70 @@ interface AboutProps {
 
 export default function About({ language }: AboutProps) {
   const t = TRANSLATIONS[language];
-  const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<'all' | 'panoramic' | 'interiors' | 'exteriors'>('all');
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
   const [mapType, setMapType] = useState<'satellite' | 'live'>('satellite');
 
-  const galleryItems = [
-    { 
-      src: IMAGES.hero, 
-      alt: language === 'ca' ? 'Façana exterior' : language === 'en' ? 'Exterior facade' : 'Fachada exterior', 
-      desc: t.galleryHeroDesc 
-    },
-    { 
-      src: IMAGES.pool, 
-      alt: language === 'ca' ? 'Piscina privada' : language === 'en' ? 'Private pool' : 'Piscina privada', 
-      desc: t.galleryPoolDesc 
-    },
-    { 
-      src: IMAGES.living, 
-      alt: language === 'ca' ? 'Saló de la llar de foc' : language === 'en' ? 'Cozy living room' : 'Salón de la chimenea', 
-      desc: language === 'ca' ? 'Saló ampli i acollidor amb llar de foc i bigues de fusta noble.' : language === 'en' ? 'Cozy, spacious living room with natural stone fireplace and hardwood beams.' : 'Salón amplio y acogedor con chimenea rústica y vigas de madera noble.'
-    },
-    { 
-      src: IMAGES.garden, 
-      alt: language === 'ca' ? 'Jardins i gespa' : language === 'en' ? 'Lush green gardens' : 'Jardines y césped', 
-      desc: t.galleryGardenDesc 
-    },
-    { 
-      src: IMAGES.bedroom, 
-      alt: language === 'ca' ? 'Dormitori principal' : language === 'en' ? 'Master bedroom' : 'Dormitorio principal', 
-      desc: language === 'ca' ? 'Habitació de matrimoni rústica-moderna banyada de llum natural.' : language === 'en' ? 'Charming rustic-modern master bedroom with premium linen and warm sunlight.' : 'Dormitorio de matrimonio rústico-moderno bañado de luz natural.'
-    },
-    { 
-      src: IMAGES.kitchen, 
-      alt: language === 'ca' ? 'Cuina gurmet' : language === 'en' ? 'Gourmet kitchen' : 'Cocina gourmet', 
-      desc: language === 'ca' ? 'Cuina totalment equipada amb taulells de marbre i taronges de l\'hort.' : language === 'en' ? 'Fully equipped high-end kitchen with marble counters and fresh local oranges.' : 'Cocina totalmente equipada con encimeras de mármol y naranjas de la huerta.'
-    },
-    { 
-      src: IMAGES.bathroom, 
-      alt: language === 'ca' ? 'Bany estil spa' : language === 'en' ? 'Spa-like bathroom' : 'Baño estilo spa', 
-      desc: language === 'ca' ? 'Bany modern amb dutxa de pluja, acabats en pedra i fusta de roure.' : language === 'en' ? 'Modern bathroom featuring walk-in rain shower and oak wood floating vanity.' : 'Baño moderno con ducha de lluvia, acabados en piedra y madera de roble.'
-    },
-    { 
-      src: IMAGES.tennis, 
-      alt: language === 'ca' ? 'Pista de tennis exterior' : language === 'en' ? 'Outdoor tennis court' : 'Pista de tenis exterior', 
-      desc: language === 'ca' ? 'Pista de tennis privada i espai de jocs envoltada de xiprers i natura.' : language === 'en' ? 'Private tennis court and recreational space surrounded by green cypress trees.' : 'Pista de tenis privada y zona recreativa rodeada de cipreses y naturaleza.'
+  // Filter gallery images
+  const filteredImages = ALL_GALLERY_IMAGES.filter(img => 
+    activeCategory === 'all' ? true : img.category === activeCategory
+  );
+
+  // Set limits for collapsed states
+  const initialLimit = activeCategory === 'all' ? 12 : 8;
+  const displayLimit = showAllPhotos ? filteredImages.length : initialLimit;
+  const displayedImages = filteredImages.slice(0, displayLimit);
+
+  const handlePrevPhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (activePhotoIndex === null) return;
+    const currentItem = ALL_GALLERY_IMAGES[activePhotoIndex];
+    const filteredIndex = filteredImages.findIndex(item => item.src === currentItem.src);
+    if (filteredIndex !== -1) {
+      const prevFilteredIndex = filteredIndex === 0 ? filteredImages.length - 1 : filteredIndex - 1;
+      const prevItem = filteredImages[prevFilteredIndex];
+      setActivePhotoIndex(ALL_GALLERY_IMAGES.findIndex(item => item.src === prevItem.src));
     }
-  ];
+  };
+
+  const handleNextPhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (activePhotoIndex === null) return;
+    const currentItem = ALL_GALLERY_IMAGES[activePhotoIndex];
+    const filteredIndex = filteredImages.findIndex(item => item.src === currentItem.src);
+    if (filteredIndex !== -1) {
+      const nextFilteredIndex = filteredIndex === filteredImages.length - 1 ? 0 : filteredIndex + 1;
+      const nextItem = filteredImages[nextFilteredIndex];
+      setActivePhotoIndex(ALL_GALLERY_IMAGES.findIndex(item => item.src === nextItem.src));
+    }
+  };
+
+  // Keyboard navigation for lightbox
+  React.useEffect(() => {
+    if (activePhotoIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') handlePrevPhoto();
+      if (e.key === 'ArrowRight') handleNextPhoto();
+      if (e.key === 'Escape') setActivePhotoIndex(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePhotoIndex]);
 
   return (
     <div className="bg-white">
       
       {/* SECTION 1: ABOUT THE PROPERTY */}
-      <section id="sobre-casa" className="py-20 border-b border-stone-200">
+      <section id="sobre-casa" className="py-20 border-b border-stone-200 scroll-mt-24">
         <div className="max-w-4xl mx-auto px-6">
           <div className="space-y-6 text-left">
             
             {/* Title & Subtitle exactly matching the screenshot style */}
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 tracking-tight">
               {t.aboutTitle}
-            </h1>
+            </h2>
             
             <p className="text-sm font-sans text-stone-500 tracking-wide">
               {t.locContactVal} • {t.entireHome}
@@ -88,32 +94,36 @@ export default function About({ language }: AboutProps) {
               {t.descParagraph2}
             </p>
 
-            {/* What offers this house - Styled exactly like the screenshot */}
-            <div className="pt-8 border-t border-stone-100">
+            {/* What offers this house - Styled exactly like the screenshot with Lucide icons */}
+            <div id="servicios" className="pt-8 border-t border-stone-100 scroll-mt-24">
               <h3 className="text-xl font-serif font-bold text-stone-900 mb-6">
                 {t.whatOffers}
               </h3>
               
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5">
                 {[
-                  t.pillBedrooms,
-                  t.pillShowers,
-                  t.pillKitchen,
-                  t.pillParking,
-                  t.pillPool,
-                  t.pillTV,
-                  t.pillWiFi,
-                  t.pillAudio,
-                  t.pillTennis,
-                  t.pillGarden
-                ].map((pill, pIdx) => (
-                  <span 
-                    key={pIdx}
-                    className="inline-flex items-center text-xs font-sans text-stone-700 bg-stone-100 hover:bg-stone-200/60 border border-stone-200/30 px-4 py-2 transition-colors rounded-full font-medium"
-                  >
-                    {pill}
-                  </span>
-                ))}
+                  { label: t.pillBedrooms, icon: Bed },
+                  { label: t.pillShowers, icon: Bath },
+                  { label: t.pillKitchen, icon: ChefHat },
+                  { label: t.pillParking, icon: Car },
+                  { label: t.pillPool, icon: Waves },
+                  { label: t.pillTV, icon: Tv },
+                  { label: t.pillWiFi, icon: Wifi },
+                  { label: t.pillAudio, icon: Music },
+                  { label: t.pillTennis, icon: Activity },
+                  { label: t.pillGarden, icon: Trees }
+                ].map((item, pIdx) => {
+                  const Icon = item.icon;
+                  return (
+                    <span 
+                      key={pIdx}
+                      className="inline-flex items-center gap-2 text-xs font-sans text-stone-700 bg-stone-100 hover:bg-stone-200/60 border border-stone-200/30 px-4 py-2.5 transition-colors rounded-full font-medium"
+                    >
+                      <Icon className="w-4 h-4 text-accent-terracotta shrink-0" />
+                      <span>{item.label}</span>
+                    </span>
+                  );
+                })}
               </div>
             </div>
 
@@ -176,9 +186,9 @@ export default function About({ language }: AboutProps) {
       </section>
 
       {/* SECTION 2: IMAGE GALLERY WITH LIGHTBOX (Screenshot Row Layout) */}
-      <section id="galeria" className="py-20 border-b border-stone-200 bg-stone-50/50">
+      <section id="galeria" className="py-20 border-b border-stone-200 bg-stone-50/50 scroll-mt-24">
         <div className="max-w-4xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
             <div>
               <span className="text-stone-500 text-xs uppercase tracking-[0.25em] font-sans block">{t.gallerySub}</span>
               <h2 className="text-3xl font-serif font-bold mt-2 text-stone-900">{t.galleryTitle}</h2>
@@ -188,94 +198,149 @@ export default function About({ language }: AboutProps) {
             </p>
           </div>
 
-          {/* Main big image on top */}
-          <div 
-            className="w-full h-80 md:h-[450px] overflow-hidden border border-stone-200 cursor-pointer group relative shadow-md rounded-xl"
-            onClick={() => setActiveImage(IMAGES.hero)}
-          >
-            <img
-              src={IMAGES.hero}
-              alt="Casa Tarongers Vista Principal"
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.01]"
-              referrerPolicy="no-referrer"
-            />
-            {/* Soft dark/light overlay */}
-            <div className="absolute inset-0 bg-stone-950/10 group-hover:bg-transparent transition-colors duration-300" />
-            
-            <div className="absolute bottom-6 left-6 text-white drop-shadow-md pointer-events-none">
-              <span className="text-[9px] font-sans uppercase tracking-[0.25em] bg-stone-950/70 backdrop-blur-md py-1.5 px-3 rounded-full border border-white/20">
-                {language === 'ca' ? 'VISTA DESTACADA' : language === 'en' ? 'FEATURED VIEW' : 'VISTA DESTACADA'}
-              </span>
-              <h4 className="text-xl font-serif font-bold mt-2.5">{t.galleryHeroDesc}</h4>
-            </div>
+          {/* Interactive Category Filters */}
+          <div className="flex flex-wrap gap-2 mb-8 border-b border-stone-200/65 pb-5">
+            {(['all', 'panoramic', 'interiors', 'exteriors'] as const).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setShowAllPhotos(false);
+                }}
+                className={`px-4 py-2 text-[10px] font-sans tracking-wider uppercase rounded-full cursor-pointer transition-all duration-200 ${
+                  activeCategory === cat
+                    ? 'bg-stone-850 text-white font-bold shadow-xs'
+                    : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+                }`}
+              >
+                {cat === 'all' ? t.filterAll :
+                 cat === 'panoramic' ? t.filterPanoramic :
+                 cat === 'interiors' ? t.filterInteriors :
+                 t.filterExteriors}
+              </button>
+            ))}
           </div>
 
-          {/* Row of 8 thumbnails beneath */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mt-4">
-            {galleryItems.map((item, idx) => (
-              <div 
-                key={idx}
-                onClick={() => setActiveImage(item.src)}
-                className="h-20 md:h-24 overflow-hidden cursor-pointer group border border-stone-200 rounded-lg relative"
+          {/* Images Grid */}
+          <div className={`grid gap-4 transition-all duration-300 ${
+            activeCategory === 'panoramic'
+              ? 'grid-cols-1 md:grid-cols-2'
+              : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+          }`}>
+            {displayedImages.map((img) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                key={img.src}
+                onClick={() => setActivePhotoIndex(ALL_GALLERY_IMAGES.findIndex(item => item.src === img.src))}
+                className={`overflow-hidden cursor-pointer group border border-stone-200 rounded-lg relative shadow-xs hover:shadow-md transition-shadow duration-300 ${
+                  activeCategory === 'panoramic' ? 'aspect-[3/1] md:aspect-[2.4/1]' : 'aspect-square md:aspect-[4/3]'
+                }`}
               >
                 <img
-                  src={item.src}
-                  alt={item.alt}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  src={img.src}
+                  alt={img.alt[language]}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-stone-950/15 group-hover:bg-transparent transition-colors duration-300" />
-                <div className="absolute bottom-1 left-1 right-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <p className="text-[8px] uppercase tracking-wider font-sans bg-stone-950/80 backdrop-blur-xs py-0.5 px-1.5 text-center truncate rounded">{item.alt}</p>
+                <div className="absolute bottom-2 left-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <p className="text-[9px] uppercase tracking-wider font-sans bg-stone-950/80 backdrop-blur-xs py-1 px-2 rounded truncate inline-block">
+                    {img.alt[language]}
+                  </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
+
+          {/* Show More / Show Less Toggle Button */}
+          {filteredImages.length > initialLimit && (
+            <div className="flex justify-center mt-8">
+              <button
+                type="button"
+                onClick={() => setShowAllPhotos(!showAllPhotos)}
+                className="px-6 py-3 border border-stone-300 text-[10px] font-sans font-semibold uppercase tracking-widest text-stone-700 hover:text-stone-900 hover:border-stone-500 rounded-lg transition-colors cursor-pointer"
+              >
+                {showAllPhotos ? t.showLess : t.showMore}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Lightbox Modal with dynamic details */}
         <AnimatePresence>
-          {activeImage && (() => {
-            const currentItem = galleryItems.find(item => item.src === activeImage);
+          {activePhotoIndex !== null && (() => {
+            const currentItem = ALL_GALLERY_IMAGES[activePhotoIndex];
             return (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-stone-950/95 z-50 flex flex-col items-center justify-center p-4 md:p-10 select-none"
-                onClick={() => setActiveImage(null)}
+                onClick={() => setActivePhotoIndex(null)}
               >
+                {/* Close Button */}
                 <button 
                   type="button" 
-                  className="absolute top-6 right-6 p-2 text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer z-55"
-                  onClick={() => setActiveImage(null)}
+                  className="absolute top-6 right-6 p-2.5 text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer z-55"
+                  onClick={() => setActivePhotoIndex(null)}
+                  title={language === 'ca' ? 'Tancar' : language === 'en' ? 'Close' : 'Cerrar'}
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5" />
                 </button>
                 
+                {/* Prev Button */}
+                <button
+                  type="button"
+                  onClick={handlePrevPhoto}
+                  className="absolute left-4 p-3 text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer z-55"
+                  aria-label="Previous"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+
+                {/* Next Button */}
+                <button
+                  type="button"
+                  onClick={handleNextPhoto}
+                  className="absolute right-4 p-3 text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer z-55"
+                  aria-label="Next"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+
                 <div className="relative max-w-5xl max-h-[75vh] flex items-center justify-center">
                   <motion.img
-                    initial={{ scale: 0.95 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0.95 }}
-                    src={activeImage}
-                    alt={currentItem?.alt || "Fullscreen View"}
-                    className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg border border-white/10"
+                    key={currentItem.src}
+                    initial={{ scale: 0.96, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.96, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    src={currentItem.src}
+                    alt={currentItem.alt[language] || "Fullscreen View"}
+                    className="max-w-full max-h-[72vh] object-contain shadow-2xl rounded-lg border border-white/10"
                     referrerPolicy="no-referrer"
                   />
                 </div>
 
-                {currentItem && (
-                  <div className="mt-6 text-center text-white max-w-2xl px-6 pointer-events-none">
-                    <span className="text-[10px] font-sans uppercase tracking-[0.2em] bg-white/10 backdrop-blur-md py-1 px-3.5 rounded-full border border-white/10 font-semibold inline-block">
-                      {currentItem.alt}
-                    </span>
-                    <p className="text-sm font-sans mt-3 text-stone-300 font-light leading-relaxed">
-                      {currentItem.desc}
+                <div className="mt-6 text-center text-white max-w-2xl px-6 pointer-events-none">
+                  <span className="text-[10px] font-sans uppercase tracking-[0.2em] bg-white/10 backdrop-blur-md py-1.5 px-4 rounded-full border border-white/10 font-semibold inline-block">
+                    {currentItem.alt[language]}
+                  </span>
+                  {currentItem.desc && (
+                    <p className="text-xs font-sans mt-3 text-stone-300 font-light leading-relaxed">
+                      {currentItem.desc[language]}
                     </p>
-                  </div>
-                )}
+                  )}
+                  <p className="text-[10px] font-mono text-stone-500 mt-2">
+                    {activePhotoIndex + 1} / {ALL_GALLERY_IMAGES.length}
+                  </p>
+                </div>
               </motion.div>
             );
           })()}
@@ -283,7 +348,7 @@ export default function About({ language }: AboutProps) {
       </section>
 
       {/* SECTION 4: LOCATION MAP & driving guide */}
-      <section id="ubicacion" className="py-20 bg-white">
+      <section id="ubicacion" className="py-20 bg-white scroll-mt-24">
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
@@ -345,7 +410,7 @@ export default function About({ language }: AboutProps) {
                       
                       {/* Elegant Map Marker Info Pop */}
                       <div className="absolute bottom-6 left-6 right-6 sm:right-auto z-10 bg-stone-900/90 backdrop-blur-md p-4 border border-white/10 text-white shadow-lg text-xs max-w-xs font-sans space-y-1 rounded-lg">
-                        <div className="font-serif italic font-semibold text-sm text-accent-terracotta">Casa Tarongers 1967</div>
+                        <div className="font-serif italic font-semibold text-sm text-accent-terracotta">Casa Tarongers</div>
                         <div className="font-mono text-[9px] text-stone-400">Lat: 41.437457° N • Lon: 1.868791° E</div>
                         <div className="text-[10px] text-stone-300 leading-relaxed pt-1 border-t border-white/10 mt-1">
                           {language === 'ca' 
