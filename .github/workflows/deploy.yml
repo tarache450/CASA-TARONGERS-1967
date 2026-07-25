@@ -22,7 +22,10 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run build
+        run: |
+          npm run build
+          cp server.js dist/
+          cp package.json dist/
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           APP_URL: https://casatarongers1967.com
