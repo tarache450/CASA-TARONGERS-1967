@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: |
           npm run build
-          cp server.js dist/
+          cp server.prod.js dist/
           cp package.json dist/
           cp package-lock.json dist/
         env:
