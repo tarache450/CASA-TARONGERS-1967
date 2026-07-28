@@ -42,5 +42,5 @@ jobs:
           port: 65002
           local_path: './dist/*'
           remote_path: '/home/u898585567/public_html'
-          sftp_only: true
-          delete_remote_files: true
+          sftp_only: false
+          delete_remote_files: false
