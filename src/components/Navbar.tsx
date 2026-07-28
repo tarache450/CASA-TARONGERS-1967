@@ -30,7 +30,8 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-stone-50/90 backdrop-blur-md border-b border-stone-200">
+    <>
+      <header className="sticky top-0 z-50 bg-stone-50/90 backdrop-blur-md border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Elegant Minimalist Logo */}
         <button 
@@ -125,7 +126,7 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
             <Menu className="w-4.5 h-4.5" />
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Mobile Menu Drawer */}
       <AnimatePresence>
@@ -253,6 +254,6 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
           </>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
