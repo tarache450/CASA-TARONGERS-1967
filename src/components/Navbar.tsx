@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Lock, CalendarDays, Menu, X } from 'lucide-react';
+import { Home, Lock, CalendarDays, Menu, X, Info, Sparkles, Image as ImageIcon, MapPin } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../translations';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -163,32 +163,50 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
                 </div>
 
                 {/* Nav Links */}
-                <nav className="flex flex-col gap-6 text-sm tracking-widest uppercase text-stone-850">
+                <nav className="flex flex-col gap-3 text-xs tracking-widest uppercase">
                   <button 
-                    onClick={() => scrollToId('sobre-casa')} 
-                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      scrollToId('sobre-casa');
+                    }}
+                    className="flex items-center gap-3 py-3 px-3.5 hover:text-accent-terracotta hover:bg-stone-200/30 border-l-2 border-transparent hover:border-accent-terracotta transition-all duration-200 font-sans tracking-widest uppercase cursor-pointer text-stone-700 font-medium rounded-r-md text-left"
                   >
-                    {t.aboutHouse}
+                    <Info className="w-4 h-4 text-stone-400 shrink-0" />
+                    <span>{t.aboutHouse}</span>
                   </button>
                   <button 
-                    onClick={() => scrollToId('servicios')} 
-                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      scrollToId('servicios');
+                    }}
+                    className="flex items-center gap-3 py-3 px-3.5 hover:text-accent-terracotta hover:bg-stone-200/30 border-l-2 border-transparent hover:border-accent-terracotta transition-all duration-200 font-sans tracking-widest uppercase cursor-pointer text-stone-700 font-medium rounded-r-md text-left"
                   >
-                    {t.services}
+                    <Sparkles className="w-4 h-4 text-stone-400 shrink-0" />
+                    <span>{t.services}</span>
                   </button>
                   <button 
-                    onClick={() => scrollToId('galeria')} 
-                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      scrollToId('galeria');
+                    }}
+                    className="flex items-center gap-3 py-3 px-3.5 hover:text-accent-terracotta hover:bg-stone-200/30 border-l-2 border-transparent hover:border-accent-terracotta transition-all duration-200 font-sans tracking-widest uppercase cursor-pointer text-stone-700 font-medium rounded-r-md text-left"
                   >
-                    {t.gallery}
+                    <ImageIcon className="w-4 h-4 text-stone-400 shrink-0" />
+                    <span>{t.gallery}</span>
                   </button>
                   <button 
-                    onClick={() => scrollToId('ubicacion')} 
-                    className="text-left py-2 hover:text-stone-900 transition-colors font-sans border-b border-stone-100 cursor-pointer"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      scrollToId('ubicacion');
+                    }}
+                    className="flex items-center gap-3 py-3 px-3.5 hover:text-accent-terracotta hover:bg-stone-200/30 border-l-2 border-transparent hover:border-accent-terracotta transition-all duration-200 font-sans tracking-widest uppercase cursor-pointer text-stone-700 font-medium rounded-r-md text-left"
                   >
-                    {t.location}
+                    <MapPin className="w-4 h-4 text-stone-400 shrink-0" />
+                    <span>{t.location}</span>
                   </button>
                   
+                  <span className="h-[1px] bg-stone-200 my-1" />
+
                   {/* Owner Portal Link */}
                   <button 
                     onClick={() => {
@@ -199,9 +217,9 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }, 100);
                     }}
-                    className={`flex items-center gap-2 py-3 hover:text-stone-900 transition-colors font-sans tracking-widest uppercase cursor-pointer ${currentTab === 'dashboard' ? 'text-stone-900 font-bold' : 'text-stone-500'}`}
+                    className={`flex items-center gap-3 py-3 px-3.5 hover:text-accent-terracotta hover:bg-stone-200/30 border-l-2 border-transparent hover:border-accent-terracotta transition-all duration-200 font-sans tracking-widest uppercase cursor-pointer font-medium rounded-r-md text-left ${currentTab === 'dashboard' ? 'text-accent-terracotta border-accent-terracotta bg-stone-200/20 font-semibold' : 'text-stone-500'}`}
                   >
-                    <Lock className="w-4 h-4" />
+                    <Lock className="w-4 h-4 shrink-0" />
                     <span>{currentTab === 'dashboard' ? t.web : t.familyDashboard}</span>
                   </button>
                 </nav>

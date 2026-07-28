@@ -9,6 +9,7 @@ import {
   AlertCircle, 
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown, 
   Smartphone, 
   Building2, 
   ShieldCheck, 
@@ -815,11 +816,11 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                     <div>
                       <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">{t.calNumGuests}</label>
                       <div className="relative">
-                        <Users className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <Users className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <select
                           value={guestsCount}
                           onChange={(e) => setGuestsCount(Number(e.target.value))}
-                          className="w-full bg-white border border-stone-200 rounded-none pl-10 pr-4 py-2.5 text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-accent-terracotta focus:border-accent-terracotta transition-all appearance-none cursor-pointer font-sans"
+                          className="w-full bg-white border border-stone-200 rounded-none pl-10 pr-8 py-2.5 text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-accent-terracotta focus:border-accent-terracotta transition-all appearance-none cursor-pointer font-sans"
                         >
                           {Array.from({ length: settings.capacity }, (_, i) => i + 1).map(num => (
                             <option key={num} value={num} className="bg-white text-stone-800">
@@ -829,6 +830,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                             </option>
                           ))}
                         </select>
+                        <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
                     </div>
 
@@ -836,7 +838,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                       <div>
                         <label className="block text-[9px] font-sans uppercase tracking-widest text-stone-500 font-semibold mb-1">{language === 'ca' ? 'Mètode de Pagament' : language === 'en' ? 'Payment Method' : 'Método de Pago'}</label>
                         <div className="relative">
-                          <CreditCard className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                          <CreditCard className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <select
                             value={selectedPaymentMethod}
                             onChange={(e) => setSelectedPaymentMethod(e.target.value as PaymentMethod)}
@@ -848,7 +850,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
                             <option value="Bizum">Bizum</option>
                             <option value="Bank Transfer">{language === 'ca' ? 'Transferència Bancària' : language === 'en' ? 'Bank Transfer' : 'Transferencia Bancaria'}</option>
                           </select>
-                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none w-2 h-2 border-r border-b border-stone-500 rotate-45" />
+                          <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                       </div>
                     ) : (
