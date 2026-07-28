@@ -111,7 +111,7 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
 
           <button
             onClick={() => scrollToId('reservas')}
-            className="text-[10px] md:text-xs tracking-widest uppercase bg-accent-terracotta hover:bg-accent-terracotta-hover text-white px-4 md:px-6 py-2.5 md:py-3 rounded-[4px] shadow-sm font-sans font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="hidden sm:block text-[10px] md:text-xs tracking-widest uppercase bg-accent-terracotta hover:bg-accent-terracotta-hover text-white px-4 md:px-6 py-2.5 md:py-3 rounded-[4px] shadow-sm font-sans font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             {t.bookNow}
           </button>

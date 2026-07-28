@@ -921,7 +921,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="bg-white w-full max-w-4xl border border-[#E5E1D8] shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 max-h-[90vh] md:max-h-none"
+              className="bg-white w-full max-w-4xl border border-[#E5E1D8] shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12"
             >
               
               {/* Left Column: Order details & Payment Method tabs (5 cols) */}
@@ -1120,7 +1120,7 @@ export default function BookingCalendar({ bookings, settings, onAddBooking, lang
               </div>
 
               {/* Right Column: Payment Details form (7 cols) */}
-              <div className="md:col-span-7 p-6 md:p-8 flex flex-col justify-between relative overflow-y-auto max-h-[60vh] md:max-h-none">
+              <div className="md:col-span-7 p-6 md:p-8 flex flex-col justify-between relative">
                 
                 {/* Close Button */}
                 <button

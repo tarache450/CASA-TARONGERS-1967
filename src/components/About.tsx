@@ -617,7 +617,7 @@ export default function About({ language }: AboutProps) {
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 15 }}
                 transition={{ type: 'spring', duration: 0.5 }}
-                className="bg-white border border-stone-200 w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative rounded-2xl"
+                className="bg-white border border-stone-200 w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative rounded-2xl max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Close Button */}
@@ -649,7 +649,7 @@ export default function About({ language }: AboutProps) {
                 </div>
 
                 {/* Right Side: Information Details */}
-                <div className="md:w-7/12 p-6 md:p-8 flex flex-col justify-between overflow-y-auto max-h-[80vh] md:max-h-[580px] text-left">
+                <div className="md:w-7/12 p-6 md:p-8 flex-grow overflow-y-auto text-left flex flex-col justify-between">
                   <div className="space-y-4">
                     {/* Header */}
                     <div className="hidden md:block">

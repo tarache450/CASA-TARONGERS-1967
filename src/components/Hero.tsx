@@ -40,44 +40,44 @@ export default function Hero({ onSearchClick, language }: HeroProps) {
         </p>
 
         {/* Search Widget - Anchored over the hero bottom (Minimalist Sand & Border design matching screenshot) */}
-        <div className="max-w-4xl mx-auto w-full bg-[#FAFAF5] text-stone-800 p-4 md:p-6 border border-[#E5E1D8] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-0 divide-y sm:divide-y lg:divide-y-0 lg:divide-x divide-[#E5E1D8] text-left animate-slide-up delay-300 shadow-lg">
+        <div className="max-w-4xl mx-auto w-full bg-[#FAFAF5] text-[#2D2D2D] border border-[#E5E1D8] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 text-left animate-slide-up delay-300 shadow-lg">
           
           {/* Col 1: Availability check */}
-          <div className="pb-3 md:pb-0 md:pr-6 flex flex-col justify-center cursor-pointer hover:bg-white/50 p-2 transition-colors" onClick={onSearchClick}>
+          <div className="p-4 sm:p-5 lg:p-6 flex flex-col justify-center cursor-pointer hover:bg-stone-200/40 transition-colors border-b sm:border-r sm:border-b lg:border-b-0 border-[#E5E1D8]" onClick={onSearchClick}>
             <span className="text-[9px] font-sans text-stone-400 uppercase tracking-[0.2em] font-semibold">{language === 'ca' ? 'Disponibilitat' : language === 'en' ? 'Availability' : 'Disponibilidad'}</span>
-            <span className="text-sm font-medium text-[#2D2D2D] mt-1.5 flex items-center gap-1.5 font-sans text-stone-500">
+            <span className="text-xs sm:text-sm font-medium mt-1.5 flex items-center gap-1.5 font-sans text-stone-500">
               {t.checkAvailability}
             </span>
           </div>
 
           {/* Col 2: Check-In */}
-          <div className="py-3 md:py-0 md:px-6 flex flex-col justify-center cursor-pointer hover:bg-white/50 p-2 transition-colors" onClick={onSearchClick}>
+          <div className="p-4 sm:p-5 lg:p-6 flex flex-col justify-center cursor-pointer hover:bg-stone-200/40 transition-colors border-b sm:border-b lg:border-r lg:border-b-0 border-[#E5E1D8]" onClick={onSearchClick}>
             <span className="text-[9px] font-sans text-stone-400 uppercase tracking-[0.2em] font-semibold">{t.calCheckIn}</span>
-            <span className="text-sm font-medium text-stone-500 mt-1.5 flex items-center gap-1.5 font-sans">
+            <span className="text-xs sm:text-sm font-medium text-stone-500 mt-1.5 flex items-center gap-1.5 font-sans">
               {language === 'ca' ? 'Afegir dates' : language === 'en' ? 'Add dates' : 'Añadir fechas'}
             </span>
           </div>
 
           {/* Col 3: Check-Out */}
-          <div className="py-3 md:py-0 md:px-6 flex flex-col justify-center cursor-pointer hover:bg-white/50 p-2 transition-colors" onClick={onSearchClick}>
+          <div className="p-4 sm:p-5 lg:p-6 flex flex-col justify-center cursor-pointer hover:bg-stone-200/40 transition-colors border-b sm:border-r sm:border-b-0 lg:border-r lg:border-b-0 border-[#E5E1D8]" onClick={onSearchClick}>
             <span className="text-[9px] font-sans text-stone-400 uppercase tracking-[0.2em] font-semibold">{t.calCheckOut}</span>
-            <span className="text-sm font-medium text-stone-500 mt-1.5 flex items-center gap-1.5 font-sans">
+            <span className="text-xs sm:text-sm font-medium text-stone-500 mt-1.5 flex items-center gap-1.5 font-sans">
               {language === 'ca' ? 'Afegir dates' : language === 'en' ? 'Add dates' : 'Añadir fechas'}
             </span>
           </div>
 
           {/* Col 4: Guests & Button */}
-          <div className="pt-3 md:pt-0 md:pl-6 flex items-center justify-between gap-4">
-            <div className="flex flex-col justify-center cursor-pointer hover:bg-white/50 p-2 transition-colors w-full" onClick={onSearchClick}>
+          <div className="p-4 sm:p-5 lg:p-6 flex items-center justify-between gap-4">
+            <div className="flex flex-col justify-center cursor-pointer hover:bg-stone-200/40 transition-colors w-full" onClick={onSearchClick}>
               <span className="text-[9px] font-sans text-stone-400 uppercase tracking-[0.2em] font-semibold">{t.calNumGuests}</span>
-              <span className="text-sm font-medium text-stone-500 mt-1.5 flex items-center gap-1.5 font-sans">
+              <span className="text-xs sm:text-sm font-medium text-stone-500 mt-1.5 flex items-center gap-1.5 font-sans">
                 {language === 'ca' ? 'Afegir hostes' : language === 'en' ? 'Add guests' : 'Añadir huéspedes'}
               </span>
             </div>
             
             <button
               onClick={onSearchClick}
-              className="bg-accent-terracotta hover:bg-accent-terracotta-hover text-white p-4.5 shadow-sm transition-all hover:scale-105 shrink-0 cursor-pointer rounded-none"
+              className="bg-accent-terracotta hover:bg-accent-terracotta-hover text-white p-3.5 sm:p-4.5 shadow-sm transition-all hover:scale-105 shrink-0 cursor-pointer rounded-none"
               title="Buscar Disponibilidad"
             >
               <Search className="w-4 h-4" />
