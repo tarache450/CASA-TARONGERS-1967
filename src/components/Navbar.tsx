@@ -137,7 +137,12 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-stone-950/40 backdrop-blur-md lg:hidden"
+              style={{
+                backgroundColor: 'rgba(12, 10, 9, 0.5)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}
+              className="fixed inset-0 z-40 lg:hidden"
             />
             {/* Drawer */}
             <motion.div
@@ -145,7 +150,11 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-sm bg-white shadow-[0_0_50px_rgba(0,0,0,0.12)] p-6 flex flex-col justify-between border-l border-stone-100 lg:hidden"
+              style={{
+                backgroundColor: '#ffffff',
+                boxShadow: '0 0 50px rgba(0,0,0,0.12)'
+              }}
+              className="fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-sm p-6 flex flex-col justify-between border-l border-stone-100 lg:hidden"
             >
               <div className="space-y-8">
                 {/* Header inside drawer */}
