@@ -126,7 +126,8 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
             <Menu className="w-4.5 h-4.5" />
           </button>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Mobile Menu Drawer */}
       <AnimatePresence>
