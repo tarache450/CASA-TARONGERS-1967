@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { createServer } = require('http');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,8 +15,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// ----- Serve static files from the Vite build output -----
-app.use(express.static(path.join(__dirname, 'dist'), {
+// ----- Resolve static directory (use dist if present, otherwise fallback to root) -----
+const staticDir = fs.existsSync(path.join(__dirname, 'dist'))
+  ? path.join(__dirname, 'dist')
+  : __dirname;
+
+// ----- Serve static files -----
+app.use(express.static(staticDir, {
   maxAge: '1y',           // Cache static assets for 1 year
   etag: true,
   lastModified: true,
@@ -29,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'dist'), {
 
 // ----- SPA Fallback: serve index.html for all non-file routes -----
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(staticDir, 'index.html'));
 });
 
 // ----- Start Server -----
