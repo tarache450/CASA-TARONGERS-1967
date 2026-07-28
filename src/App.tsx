@@ -249,8 +249,8 @@ export default function App() {
       </main>
 
       {/* Elegant, high-end design Footer in Warm Forest Green matching mockup */}
-      <footer className="bg-[#1C2E15] text-stone-200 border-t border-stone-800/20 pt-16 pb-12">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+      <footer className="bg-[#1C2E15] text-stone-200 border-t border-stone-800/20 pt-10 pb-8 md:pt-16 md:pb-12">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           
           {/* Logo and signature */}
           <div className="md:col-span-2 space-y-4">
@@ -314,7 +314,7 @@ export default function App() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-stone-400">
+        <div className="max-w-7xl mx-auto px-6 mt-10 md:mt-16 pt-6 md:pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-stone-400">
           <div>
             &copy; {new Date().getFullYear()} Casa Tarongers. {ft.footRights}
           </div>
