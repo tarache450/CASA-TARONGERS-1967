@@ -27,6 +27,7 @@ jobs:
           mkdir -p dist/tmp
           touch dist/tmp/restart.txt
           cp server.prod.js dist/
+          cp server.prod.js dist/server.js
           cp package.json dist/
           cp package-lock.json dist/
         env:
@@ -43,4 +44,4 @@ jobs:
           local_path: './dist/*'
           remote_path: '/home/u898585567/domains/casatarongers1967.com/public_html'
           sftp_only: false
-          delete_remote_files: false
+          delete_remote_files: true
