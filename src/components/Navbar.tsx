@@ -119,10 +119,10 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 text-stone-700 hover:text-stone-900 focus:outline-none transition-colors cursor-pointer"
+            className="lg:hidden p-2.5 text-stone-800 hover:text-stone-950 bg-white/90 hover:bg-white border border-stone-200/50 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.06)] backdrop-blur-md transition-all duration-200 focus:outline-none cursor-pointer flex items-center justify-center"
             aria-label={t.menuOpen}
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-4.5 h-4.5" />
           </button>
         </div>
       </div>
@@ -134,10 +134,10 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
+              className="fixed inset-0 z-40 bg-stone-950/40 backdrop-blur-md lg:hidden"
             />
             {/* Drawer */}
             <motion.div
@@ -145,7 +145,7 @@ export default function Navbar({ currentTab, onChangeTab, language, onLanguageCh
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-sm bg-stone-50 shadow-2xl p-6 flex flex-col justify-between border-l border-stone-200 lg:hidden"
+              className="fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-sm bg-white shadow-[0_0_50px_rgba(0,0,0,0.12)] p-6 flex flex-col justify-between border-l border-stone-100 lg:hidden"
             >
               <div className="space-y-8">
                 {/* Header inside drawer */}
