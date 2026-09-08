@@ -521,12 +521,12 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(400).json({ error: 'Debes aceptar las condiciones de reserva y política de privacidad.' });
     }
 
-    // Minimum stay check (2 nights)
+    // Minimum stay check (1 night)
     const [sY, sM, sD] = checkIn.split('-').map(Number);
     const [eY, eM, eD] = checkOut.split('-').map(Number);
     const nights = Math.ceil((new Date(eY, eM - 1, eD) - new Date(sY, sM - 1, sD)) / (1000 * 60 * 60 * 24));
-    if (nights < 2) {
-      return res.status(400).json({ error: 'La estancia mínima en Casa Tarongers es de 2 noches.' });
+    if (nights < 1) {
+      return res.status(400).json({ error: 'La estancia mínima en Casa Tarongers es de 1 noche.' });
     }
 
     const bookings = await readAllBookings();

@@ -2,7 +2,8 @@ import { Booking, PropertySettings, Amenity, GalleryImage } from './types';
 
 export const INITIAL_PROPERTY_SETTINGS: PropertySettings = {
   capacity: 10,
-  minDays: 2,
+  minDays: 1,
+  minStayNights: 1,
   contactEmail: 'acivit@coac.net',
   contactPhone: '+34 629 30 85 70'
 };

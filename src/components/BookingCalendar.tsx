@@ -333,14 +333,14 @@ export default function BookingCalendar({
       return;
     }
 
-    const minDays = settings.minStayNights || settings.minDays || 2;
+    const minDays = settings.minStayNights || settings.minDays || 1;
     if (nights < minDays) {
       setFormError(
         language === 'ca'
-          ? `L’estada mínima és de ${minDays} nits.`
+          ? (minDays === 1 ? 'L’estada mínima és d’1 nit.' : `L’estada mínima és de ${minDays} nits.`)
           : language === 'en'
-          ? `Minimum stay is ${minDays} nights.`
-          : `La estancia mínima es de ${minDays} noches.`
+          ? (minDays === 1 ? 'Minimum stay is 1 night.' : `Minimum stay is ${minDays} nights.`)
+          : (minDays === 1 ? 'La estancia mínima es de 1 noche.' : `La estancia mínima es de ${minDays} noches.`)
       );
       return;
     }
@@ -700,7 +700,7 @@ export default function BookingCalendar({
                     </div>
                     <div className="flex items-center gap-2.5 p-2 rounded-xl bg-stone-50">
                       <CalendarCheck className="w-4 h-4 text-accent-terracotta shrink-0" />
-                      <span>{language === 'ca' ? 'Mínim: 2 nits' : language === 'en' ? 'Min: 2 nights' : 'Mínimo: 2 noches'}</span>
+                      <span>{language === 'ca' ? 'Mínim: 1 nit' : language === 'en' ? 'Min: 1 night' : 'Mínimo: 1 noche'}</span>
                     </div>
                   </div>
                 </div>

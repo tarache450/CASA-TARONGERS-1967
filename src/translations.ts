@@ -308,7 +308,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     specExactLoc: 'Ubicación Exacta',
     specLocVal: 'Gelida, Penedès',
     specMinStay: 'Estancia mínima',
-    specMinStayVal: '3 noches',
+    specMinStayVal: '1 noche',
     specPoolType: 'Piscina',
     specPoolVal: 'Privada',
 
@@ -560,7 +560,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     specExactLoc: 'Ubicació Exacta',
     specLocVal: 'Gelida, Penedès',
     specMinStay: 'Estada mínima',
-    specMinStayVal: '3 nits',
+    specMinStayVal: '1 nit',
     specPoolType: 'Piscina',
     specPoolVal: 'Privada',
 
@@ -812,7 +812,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     specExactLoc: 'Exact Location',
     specLocVal: 'Gelida, Penedès',
     specMinStay: 'Minimum stay',
-    specMinStayVal: '3 nights',
+    specMinStayVal: '1 night',
     specPoolType: 'Swimming pool',
     specPoolVal: 'Private',
 

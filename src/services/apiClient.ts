@@ -181,12 +181,12 @@ class ApiClient {
       throw new Error('Debes aceptar las condiciones de reserva y política de privacidad.');
     }
 
-    // Minimum stay check (2 nights)
+    // Minimum stay check (1 night)
     const [sY, sM, sD] = checkIn.split('-').map(Number);
     const [eY, eM, eD] = checkOut.split('-').map(Number);
     const nights = Math.ceil((new Date(eY, eM - 1, eD).getTime() - new Date(sY, sM - 1, sD).getTime()) / (1000 * 60 * 60 * 24));
-    if (nights < 2) {
-      throw new Error('La estancia mínima en Casa Tarongers es de 2 noches.');
+    if (nights < 1) {
+      throw new Error('La estancia mínima en Casa Tarongers es de 1 noche.');
     }
 
     // Overlap collision detection against confirmed bookings and blocks
@@ -224,10 +224,17 @@ class ApiClient {
         };
       }
 
-      // If server returned 4xx (validation, conflict, duplicate), throw that exact error
+      // If server returned 4xx with JSON error (validation, conflict, duplicate), throw that exact business error
       if (resp.status >= 400 && resp.status < 500) {
-        const errJson = await resp.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Error al procesar la reserva.');
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errJson = await resp.json().catch(() => ({}));
+          if (errJson && errJson.error) {
+            throw new Error(errJson.error);
+          }
+        }
+        // If it's a 404/405 or HTML response from web server, log and fall through to Supabase direct insert
+        console.warn(`[ApiClient] Server returned ${resp.status} (non-JSON API response), proceeding with direct Supabase insert.`);
       }
     } catch (apiErr: any) {
       if (apiErr.message && !apiErr.message.includes('fetch') && !apiErr.message.includes('Network') && !apiErr.message.includes('Failed to fetch')) {
@@ -289,6 +296,8 @@ class ApiClient {
           internal_notes: [],
           privacy_accepted: true,
           terms_accepted: true,
+          guest_email_sent: false,
+          admin_email_sent: false,
           created_at: nowIso,
           updated_at: nowIso
         });
@@ -309,6 +318,15 @@ class ApiClient {
       guestsCount: count,
       status: 'pending'
     });
+
+    // 3. Trigger server notification email non-blockingly
+    try {
+      fetch('/api/notifications/reservation-created', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: newBooking.id })
+      }).catch(() => {});
+    } catch (e) {}
 
     // 3. Local persistent storage backup (guarantees zero data loss)
     try {
