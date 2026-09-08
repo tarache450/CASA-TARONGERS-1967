@@ -183,6 +183,88 @@ export interface TranslationDict {
   dashTabPreservation: string;
   dashLogout: string;
   dashSummary: string;
+
+  // Status Labels
+  statusNewRequest: string;
+  statusPendingReview: string;
+  statusContacted: string;
+  statusConfirmed: string;
+  statusRejected: string;
+  statusCancelled: string;
+  statusCompleted: string;
+  statusArchived: string;
+  statusBlocked: string;
+
+  // Public Booking Form Keys
+  calMessageLabel: string;
+  calMessagePlaceholder: string;
+  calPrivacyConsent: string;
+  calTermsConsent: string;
+  calSubmitRequestBtn: string;
+  calSubmitting: string;
+  calSuccessTitle: string;
+  calSuccessDesc: string;
+  calSuccessIdLabel: string;
+  calSuccessNewBtn: string;
+  errPastDate: string;
+  errInvalidRange: string;
+  errSameDate: string;
+  errMaxGuests: string;
+  errDateUnavailable: string;
+  errConsentRequired: string;
+  errMissingFields: string;
+  legendAvailable: string;
+  legendOccupied: string;
+  legendPending: string;
+  legendBlocked: string;
+
+  // Dashboard Keys
+  dashTabCalendar: string;
+  metricNewRequests: string;
+  metricPendingReview: string;
+  metricConfirmed: string;
+  metricRejected: string;
+  metricCancelled: string;
+  metricUpcomingArrivals: string;
+  metricUpcomingDepartures: string;
+  metricNightsBooked: string;
+  metricOccupiedDays: string;
+  metricAvailableDays: string;
+  metricOccupancyRate: string;
+  metricAvgNights: string;
+  metricCurrentMonth: string;
+  metricNoData: string;
+  btnFilterAll: string;
+  btnSearchPlaceholder: string;
+  btnExportCsv: string;
+  btnBlockDates: string;
+  btnConfirm: string;
+  btnReject: string;
+  btnCancel: string;
+  btnArchive: string;
+  btnRestore: string;
+  btnDelete: string;
+  btnSave: string;
+  btnBack: string;
+  btnCopied: string;
+  btnCopyEmail: string;
+  btnCopyPhone: string;
+  btnSendEmail: string;
+  btnCall: string;
+  btnWhatsApp: string;
+  notesTitle: string;
+  notesPlaceholder: string;
+  notesAddBtn: string;
+  historyTitle: string;
+  deleteConfirmTitle: string;
+  deleteConfirmDesc: string;
+  deleteConfirmBtn: string;
+  deleteCancelBtn: string;
+  blockModalTitle: string;
+  blockReasonLabel: string;
+  blockReasonPlaceholder: string;
+  blockSubmitBtn: string;
+  blockDeleteBtn: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDict> = {
@@ -354,7 +436,89 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     dashTabSettings: 'Tarifas y Ajustes',
     dashTabPreservation: 'Fondo y Reformas',
     dashLogout: 'Cerrar Sesión',
-    dashSummary: 'Resumen'
+    dashSummary: 'Resumen',
+
+    // Status Labels
+    statusNewRequest: 'Nueva Solicitud',
+    statusPendingReview: 'Pendiente de Revisión',
+    statusContacted: 'Contactada',
+    statusConfirmed: 'Confirmada',
+    statusRejected: 'Rechazada',
+    statusCancelled: 'Cancelada',
+    statusCompleted: 'Finalizada',
+    statusArchived: 'Archivada',
+    statusBlocked: 'Bloqueo Manual',
+
+    // Public Booking Form Keys
+    calMessageLabel: 'Mensaje o Solicitud Especial',
+    calMessagePlaceholder: 'Indícanos si viajas con niños, hora prevista de llegada o necesidades especiales...',
+    calPrivacyConsent: 'He leído y acepto la política de privacidad y protección de datos.',
+    calTermsConsent: 'Acepto las condiciones de estancia y normas de convivencia de Casa Tarongers.',
+    calSubmitRequestBtn: 'Enviar Solicitud de Reserva',
+    calSubmitting: 'Enviando solicitud...',
+    calSuccessTitle: '¡Solicitud Recibida con Éxito!',
+    calSuccessDesc: 'Hemos registrado tu solicitud correctamente. La familia revisará la disponibilidad y te responderemos por email o WhatsApp.',
+    calSuccessIdLabel: 'Identificador de tu solicitud',
+    calSuccessNewBtn: 'Enviar otra solicitud',
+    errPastDate: 'No es posible seleccionar fechas pasadas.',
+    errInvalidRange: 'La fecha de salida debe ser posterior a la fecha de entrada.',
+    errSameDate: 'La fecha de entrada y salida no pueden ser el mismo día.',
+    errMaxGuests: 'El número de huéspedes supera la capacidad máxima (10 personas).',
+    errDateUnavailable: 'Las fechas seleccionadas coinciden con días ya reservados o no disponibles.',
+    errConsentRequired: 'Debes aceptar la política de privacidad y las condiciones de reserva.',
+    errMissingFields: 'Por favor, completa todos los campos requeridos.',
+    legendAvailable: 'Disponible',
+    legendOccupied: 'Ocupado',
+    legendPending: 'Pendiente',
+    legendBlocked: 'Bloqueado',
+
+    // Dashboard Keys
+    dashTabCalendar: 'Calendario Visual',
+    metricNewRequests: 'Nuevas Solicitudes',
+    metricPendingReview: 'Pendientes Revisión',
+    metricConfirmed: 'Confirmadas',
+    metricRejected: 'Rechazadas',
+    metricCancelled: 'Canceladas',
+    metricUpcomingArrivals: 'Próximas Llegadas',
+    metricUpcomingDepartures: 'Próximas Salidas',
+    metricNightsBooked: 'Noches Reservadas',
+    metricOccupiedDays: 'Días Ocupados',
+    metricAvailableDays: 'Días Disponibles',
+    metricOccupancyRate: 'Tasa de Ocupación',
+    metricAvgNights: 'Promedio Noches/Reserva',
+    metricCurrentMonth: 'Reservas este Mes',
+    metricNoData: 'Sin datos disponibles',
+    btnFilterAll: 'Todos los estados',
+    btnSearchPlaceholder: 'Buscar por nombre, email o teléfono...',
+    btnExportCsv: 'Exportar a CSV',
+    btnBlockDates: 'Bloquear Fechas',
+    btnConfirm: 'Confirmar',
+    btnReject: 'Rechazar',
+    btnCancel: 'Cancelar',
+    btnArchive: 'Archivar',
+    btnRestore: 'Restaurar',
+    btnDelete: 'Eliminar',
+    btnSave: 'Guardar Cambios',
+    btnBack: 'Volver',
+    btnCopied: '¡Copiado!',
+    btnCopyEmail: 'Copiar Email',
+    btnCopyPhone: 'Copiar Teléfono',
+    btnSendEmail: 'Enviar Email',
+    btnCall: 'Llamar',
+    btnWhatsApp: 'WhatsApp',
+    notesTitle: 'Notas Internas Privadas',
+    notesPlaceholder: 'Escribe una nota interna para la familia...',
+    notesAddBtn: 'Añadir Nota',
+    historyTitle: 'Historial de Actividad',
+    deleteConfirmTitle: '¿Eliminar esta reserva definitivamente?',
+    deleteConfirmDesc: 'Esta acción borrará el registro de la base de datos de forma irreversible.',
+    deleteConfirmBtn: 'Sí, eliminar',
+    deleteCancelBtn: 'Cancelar',
+    blockModalTitle: 'Bloqueo Manual de Fechas',
+    blockReasonLabel: 'Motivo del Bloqueo',
+    blockReasonPlaceholder: 'Ej: Mantenimiento anual, Uso exclusivo familia...',
+    blockSubmitBtn: 'Confirmar Bloqueo',
+    blockDeleteBtn: 'Liberar Fechas'
   },
   ca: {
     aboutHouse: 'Sobre la Casa',
@@ -524,7 +688,89 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     dashTabSettings: 'Tarifes i Ajustos',
     dashTabPreservation: 'Fons i Reformes',
     dashLogout: 'Tancar Sessió',
-    dashSummary: 'Resum'
+    dashSummary: 'Resum',
+
+    // Status Labels
+    statusNewRequest: 'Nova Sol·licitud',
+    statusPendingReview: 'Pendent de Revisió',
+    statusContacted: 'Contactada',
+    statusConfirmed: 'Confirmada',
+    statusRejected: 'Rebutjada',
+    statusCancelled: 'Cancel·lada',
+    statusCompleted: 'Finalitzada',
+    statusArchived: 'Arxivada',
+    statusBlocked: 'Bloqueig Manual',
+
+    // Public Booking Form Keys
+    calMessageLabel: 'Missatge o Sol·licitud Especial',
+    calMessagePlaceholder: 'Indica\'ns si viatges amb nens, hora prevista d\'arribada o qualsevol necessitat especial...',
+    calPrivacyConsent: 'He llegit i accepto la política de privacitat i protecció de dades.',
+    calTermsConsent: 'Accepto les condicions d\'estada i normes de convivència de Casa Tarongers.',
+    calSubmitRequestBtn: 'Enviar Sol·licitud de Reserva',
+    calSubmitting: 'Enviant sol·licitud...',
+    calSuccessTitle: '¡Sol·licitud Rebuda amb Èxit!',
+    calSuccessDesc: 'Hem registrat la teva sol·licitud correctament. La família revisarà la disponibilitat i et respondrem per correu electrònic o WhatsApp.',
+    calSuccessIdLabel: 'Identificador de la teva sol·licitud',
+    calSuccessNewBtn: 'Enviar una altra sol·licitud',
+    errPastDate: 'No és possible seleccionar dates passades.',
+    errInvalidRange: 'La data de sortida ha de ser posterior a la data d\'entrada.',
+    errSameDate: 'La data d\'entrada i sortida no poden ser el mateix dia.',
+    errMaxGuests: 'El nombre d\'hostes supera la capacitat màxima (10 persones).',
+    errDateUnavailable: 'Les dates seleccionades coincideixen amb dies ja reservats o no disponibles.',
+    errConsentRequired: 'Has d\'acceptar la política de privacitat i les condicions de reserva.',
+    errMissingFields: 'Si us plau, emplena tots els camps obligatoris.',
+    legendAvailable: 'Disponible',
+    legendOccupied: 'Ocupat',
+    legendPending: 'Pendent',
+    legendBlocked: 'Bloquejat',
+
+    // Dashboard Keys
+    dashTabCalendar: 'Calendari Visual',
+    metricNewRequests: 'Noves Sol·licituds',
+    metricPendingReview: 'Pendents de Revisió',
+    metricConfirmed: 'Confirmades',
+    metricRejected: 'Rebutjades',
+    metricCancelled: 'Cancel·lades',
+    metricUpcomingArrivals: 'Properes Arribades',
+    metricUpcomingDepartures: 'Properes Sortides',
+    metricNightsBooked: 'Nits Reservades',
+    metricOccupiedDays: 'Dies Ocupats',
+    metricAvailableDays: 'Dies Disponibles',
+    metricOccupancyRate: 'Taxa d\'Ocupació',
+    metricAvgNights: 'Mitjana Nits/Reserva',
+    metricCurrentMonth: 'Reserves aquest Mes',
+    metricNoData: 'Sense dades disponibles',
+    btnFilterAll: 'Tots els estats',
+    btnSearchPlaceholder: 'Cercar per nom, email o telèfon...',
+    btnExportCsv: 'Exportar a CSV',
+    btnBlockDates: 'Bloquejar Dates',
+    btnConfirm: 'Confirmar',
+    btnReject: 'Rebutjar',
+    btnCancel: 'Cancel·lar',
+    btnArchive: 'Arxivar',
+    btnRestore: 'Restaurar',
+    btnDelete: 'Eliminar',
+    btnSave: 'Desar Canvis',
+    btnBack: 'Tornar',
+    btnCopied: '¡Copiat!',
+    btnCopyEmail: 'Copiar Email',
+    btnCopyPhone: 'Copiar Telèfon',
+    btnSendEmail: 'Enviar Email',
+    btnCall: 'Trucar',
+    btnWhatsApp: 'WhatsApp',
+    notesTitle: 'Notes Internes Privades',
+    notesPlaceholder: 'Escriu una nota interna per a la família...',
+    notesAddBtn: 'Afegir Nota',
+    historyTitle: 'Historial d\'Activitat',
+    deleteConfirmTitle: '¿Eliminar aquesta reserva definitivament?',
+    deleteConfirmDesc: 'Aquesta acció esborrarà el registre de la base de dades de forma irreversible.',
+    deleteConfirmBtn: 'Sí, eliminar',
+    deleteCancelBtn: 'Cancel·lar',
+    blockModalTitle: 'Bloqueig Manual de Dates',
+    blockReasonLabel: 'Motiu del Bloqueig',
+    blockReasonPlaceholder: 'Ex: Manteniment anual, Ús exclusiu família...',
+    blockSubmitBtn: 'Confirmar Bloqueig',
+    blockDeleteBtn: 'Alliberar Dates'
   },
   en: {
     aboutHouse: 'About',
@@ -694,6 +940,88 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     dashTabSettings: 'Rates & Settings',
     dashTabPreservation: 'Fund & Renovations',
     dashLogout: 'Log Out',
-    dashSummary: 'Overview'
+    dashSummary: 'Overview',
+
+    // Status Labels
+    statusNewRequest: 'New Request',
+    statusPendingReview: 'Pending Review',
+    statusContacted: 'Contacted',
+    statusConfirmed: 'Confirmed',
+    statusRejected: 'Rejected',
+    statusCancelled: 'Cancelled',
+    statusCompleted: 'Completed',
+    statusArchived: 'Archived',
+    statusBlocked: 'Manual Block',
+
+    // Public Booking Form Keys
+    calMessageLabel: 'Message or Special Request',
+    calMessagePlaceholder: 'Let us know if traveling with kids, estimated arrival time, or special needs...',
+    calPrivacyConsent: 'I have read and accept the privacy policy and data protection guidelines.',
+    calTermsConsent: 'I accept the rental terms, conditions, and estate house rules.',
+    calSubmitRequestBtn: 'Send Booking Request',
+    calSubmitting: 'Sending request...',
+    calSuccessTitle: 'Request Sent Successfully!',
+    calSuccessDesc: 'Your request has been registered. The family will verify availability and reach back via email or WhatsApp.',
+    calSuccessIdLabel: 'Your request identifier',
+    calSuccessNewBtn: 'Submit another request',
+    errPastDate: 'Cannot select past dates.',
+    errInvalidRange: 'Departure date must be after arrival date.',
+    errSameDate: 'Arrival and departure cannot be on the same date.',
+    errMaxGuests: 'Guest count exceeds maximum capacity (10 guests).',
+    errDateUnavailable: 'Selected dates overlap with already booked or unavailable days.',
+    errConsentRequired: 'You must accept the privacy policy and booking conditions.',
+    errMissingFields: 'Please fill in all required fields.',
+    legendAvailable: 'Available',
+    legendOccupied: 'Occupied',
+    legendPending: 'Pending',
+    legendBlocked: 'Blocked',
+
+    // Dashboard Keys
+    dashTabCalendar: 'Visual Calendar',
+    metricNewRequests: 'New Requests',
+    metricPendingReview: 'Pending Review',
+    metricConfirmed: 'Confirmed',
+    metricRejected: 'Rejected',
+    metricCancelled: 'Cancelled',
+    metricUpcomingArrivals: 'Upcoming Arrivals',
+    metricUpcomingDepartures: 'Upcoming Departures',
+    metricNightsBooked: 'Nights Booked',
+    metricOccupiedDays: 'Occupied Days',
+    metricAvailableDays: 'Available Days',
+    metricOccupancyRate: 'Occupancy Rate',
+    metricAvgNights: 'Average Nights/Booking',
+    metricCurrentMonth: 'Bookings this Month',
+    metricNoData: 'No data available',
+    btnFilterAll: 'All statuses',
+    btnSearchPlaceholder: 'Search by name, email or phone...',
+    btnExportCsv: 'Export to CSV',
+    btnBlockDates: 'Block Dates',
+    btnConfirm: 'Confirm',
+    btnReject: 'Reject',
+    btnCancel: 'Cancel',
+    btnArchive: 'Archive',
+    btnRestore: 'Restore',
+    btnDelete: 'Delete',
+    btnSave: 'Save Changes',
+    btnBack: 'Back',
+    btnCopied: 'Copied!',
+    btnCopyEmail: 'Copy Email',
+    btnCopyPhone: 'Copy Phone',
+    btnSendEmail: 'Send Email',
+    btnCall: 'Call',
+    btnWhatsApp: 'WhatsApp',
+    notesTitle: 'Private Internal Notes',
+    notesPlaceholder: 'Write an internal note for the family...',
+    notesAddBtn: 'Add Note',
+    historyTitle: 'Activity History',
+    deleteConfirmTitle: 'Permanently delete this booking?',
+    deleteConfirmDesc: 'This action cannot be undone. The record will be permanently deleted.',
+    deleteConfirmBtn: 'Yes, delete permanently',
+    deleteCancelBtn: 'Cancel',
+    blockModalTitle: 'Manual Date Block',
+    blockReasonLabel: 'Block Reason',
+    blockReasonPlaceholder: 'e.g. Annual pool maintenance, Family private use...',
+    blockSubmitBtn: 'Confirm Block',
+    blockDeleteBtn: 'Unblock Dates'
   }
 };

@@ -1,11 +1,8 @@
-import { Booking, Payment, PropertySettings, Amenity, GalleryImage } from './types';
+import { Booking, PropertySettings, Amenity, GalleryImage } from './types';
 
 export const INITIAL_PROPERTY_SETTINGS: PropertySettings = {
-  basePrice: 250, // per night (euros)
-  cleaningFee: 120,
-  highSeasonPrice: 320, // July-August
-  minDays: 3,
   capacity: 10,
+  minDays: 2,
   contactEmail: 'acivit@coac.net',
   contactPhone: '+34 629 30 85 70'
 };
@@ -36,157 +33,149 @@ export const AMENITIES: Amenity[] = [
 
 export const INITIAL_BOOKINGS: Booking[] = [
   {
-    id: 'B001',
+    id: 'REQ-2026-001',
     guestName: 'Jean-Luc Piccard',
     guestEmail: 'jl.piccard@enterprise.fr',
     guestPhone: '+33 6 1234 5678',
     checkIn: '2026-07-01',
     checkOut: '2026-07-08',
     guestsCount: 4,
-    totalPrice: 1870, // 7 nights * 250 + 120 cleaning
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    notes: 'Prefers self check-in. Arriving by car from France.',
-    createdAt: '2026-06-15T10:30:00Z'
+    message: 'Prefiere auto check-in. Llegada en coche desde Francia.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'confirmed',
+    internalNotes: [
+      { id: 'n1', timestamp: '2026-06-15T10:45:00Z', author: 'Familia', content: 'Confirmada estancia de una semana.' }
+    ],
+    history: [
+      { id: 'h1', timestamp: '2026-06-15T10:30:00Z', author: 'Jean-Luc Piccard', action: 'Solicitud enviada' },
+      { id: 'h2', timestamp: '2026-06-15T10:45:00Z', author: 'Familia', action: 'Estado cambiado a Confirmada' }
+    ],
+    createdAt: '2026-06-15T10:30:00Z',
+    updatedAt: '2026-06-15T10:45:00Z'
   },
   {
-    id: 'B002',
+    id: 'REQ-2026-002',
     guestName: 'Reunión Familiar Jordi & Carmen',
     guestEmail: 'jordi.tarongers@gmail.com',
     guestPhone: '+34 611 22 33 44',
     checkIn: '2026-07-11',
     checkOut: '2026-07-15',
     guestsCount: 8,
-    totalPrice: 1400,
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    paymentMethod: 'Bizum',
-    notes: 'Reserva familiar anual. Se necesita cuna adicional.',
-    createdAt: '2026-06-18T14:20:00Z'
+    message: 'Reserva familiar anual. Se necesita cuna adicional.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'confirmed',
+    internalNotes: [
+      { id: 'n2', timestamp: '2026-06-18T14:30:00Z', author: 'Familia', content: 'Preparar cuna en la habitación verde.' }
+    ],
+    history: [
+      { id: 'h3', timestamp: '2026-06-18T14:20:00Z', author: 'Familia', action: 'Reserva familiar confirmada' }
+    ],
+    createdAt: '2026-06-18T14:20:00Z',
+    updatedAt: '2026-06-18T14:30:00Z'
   },
   {
-    id: 'B003',
+    id: 'REQ-2026-003',
     guestName: 'Sofia Lindqvist',
     guestEmail: 'sofia.l@nordic-travel.se',
     guestPhone: '+46 70 987 6543',
     checkIn: '2026-07-18',
     checkOut: '2026-07-25',
     guestsCount: 6,
-    totalPrice: 2360, // High season: 7 * 320 + 120
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    paymentMethod: 'Card',
-    notes: 'Family vacation from Sweden. Requested early check-in if available.',
-    createdAt: '2026-06-20T09:15:00Z'
+    message: 'Vacaciones familiares desde Suecia. Solicitan early check-in si es posible.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'confirmed',
+    internalNotes: [],
+    history: [
+      { id: 'h4', timestamp: '2026-06-20T09:15:00Z', author: 'Sofia Lindqvist', action: 'Solicitud enviada' },
+      { id: 'h5', timestamp: '2026-06-20T10:00:00Z', author: 'Familia', action: 'Estado cambiado a Confirmada' }
+    ],
+    createdAt: '2026-06-20T09:15:00Z',
+    updatedAt: '2026-06-20T10:00:00Z'
   },
   {
-    id: 'B004',
+    id: 'REQ-2026-004',
     guestName: 'Mark Webber',
     guestEmail: 'mwebber@ozmail.com.au',
     guestPhone: '+61 412 345 678',
     checkIn: '2026-08-01',
     checkOut: '2026-08-10',
     guestsCount: 10,
-    totalPrice: 3000, // High season
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    notes: 'Full house capacity booking. Wedding anniversary celebration.',
-    createdAt: '2026-06-28T16:45:00Z'
+    message: 'Celebración de aniversario de boda con la familia.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'confirmed',
+    internalNotes: [],
+    history: [
+      { id: 'h6', timestamp: '2026-06-28T16:45:00Z', author: 'Mark Webber', action: 'Solicitud enviada' },
+      { id: 'h7', timestamp: '2026-06-29T11:20:00Z', author: 'Familia', action: 'Estado cambiado a Confirmada' }
+    ],
+    createdAt: '2026-06-28T16:45:00Z',
+    updatedAt: '2026-06-29T11:20:00Z'
   },
   {
-    id: 'B005',
+    id: 'REQ-2026-005',
     guestName: 'Familia Alsius',
     guestEmail: 'alsius.fam@coac.cat',
     guestPhone: '+34 600 99 88 77',
     checkIn: '2026-08-15',
     checkOut: '2026-08-20',
     guestsCount: 5,
-    totalPrice: 1720,
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    paymentMethod: 'Bank Transfer',
-    notes: 'Amics de la família. Sol·liciten accés a la pista de tennis.',
-    createdAt: '2026-07-02T11:00:00Z'
+    message: 'Amics de la família. Sol·liciten accés a la pista de tennis.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'confirmed',
+    internalNotes: [],
+    history: [
+      { id: 'h8', timestamp: '2026-07-02T11:00:00Z', author: 'Familia', action: 'Reserva confirmada' }
+    ],
+    createdAt: '2026-07-02T11:00:00Z',
+    updatedAt: '2026-07-02T11:00:00Z'
   },
   {
-    id: 'B006',
+    id: 'REQ-2026-006',
     guestName: 'Sarah Jenkins',
     guestEmail: 'sarah.j@londontech.co.uk',
     guestPhone: '+44 7700 900077',
     checkIn: '2026-08-22',
     checkOut: '2026-08-29',
     guestsCount: 6,
-    totalPrice: 2360,
-    status: 'Confirmed',
-    paymentStatus: 'Pending',
-    paymentMethod: 'Bizum',
-    notes: 'Awaiting final transfer verification.',
-    createdAt: '2026-07-10T15:30:00Z'
+    message: 'Interesados en visitar bodegas del Penedès durante la estancia.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'pending_review',
+    internalNotes: [
+      { id: 'n3', timestamp: '2026-07-10T16:00:00Z', author: 'Familia', content: 'Pendiente de coordinar fechas.' }
+    ],
+    history: [
+      { id: 'h9', timestamp: '2026-07-10T15:30:00Z', author: 'Sarah Jenkins', action: 'Solicitud enviada' }
+    ],
+    createdAt: '2026-07-10T15:30:00Z',
+    updatedAt: '2026-07-10T15:30:00Z'
   },
   {
-    id: 'B007',
+    id: 'REQ-2026-007',
     guestName: 'Lucas Rossi',
     guestEmail: 'lucas.rossi@milano.it',
     guestPhone: '+39 335 123 4567',
     checkIn: '2026-09-05',
     checkOut: '2026-09-12',
     guestsCount: 4,
-    totalPrice: 1870,
-    status: 'Confirmed',
-    paymentStatus: 'Pending',
-    paymentMethod: 'Bank Transfer',
-    notes: 'Wine tasting trip in Penedès.',
-    createdAt: '2026-07-11T08:50:00Z'
-  }
-];
-
-export const INITIAL_PAYMENTS: Payment[] = [
-  {
-    id: 'P001',
-    bookingId: 'B001',
-    guestName: 'Jean-Luc Piccard',
-    amount: 1870,
-    method: 'Bank Transfer',
-    status: 'Paid',
-    date: '2026-06-17'
-  },
-  {
-    id: 'P002',
-    bookingId: 'B003',
-    guestName: 'Sofia Lindqvist',
-    amount: 2360,
-    method: 'Card',
-    status: 'Paid',
-    date: '2026-06-21'
-  },
-  {
-    id: 'P003',
-    bookingId: 'B004',
-    guestName: 'Mark Webber',
-    amount: 3000,
-    method: 'Bank Transfer',
-    status: 'Paid',
-    date: '2026-06-30'
-  },
-  {
-    id: 'P004',
-    bookingId: 'B007',
-    guestName: 'Lucas Rossi',
-    amount: 1870,
-    method: 'Bank Transfer',
-    status: 'Pending',
-    date: '2026-07-11'
-  },
-  {
-    id: 'P005',
-    bookingId: 'B006',
-    guestName: 'Sarah Jenkins',
-    amount: 2360,
-    method: 'Bizum',
-    status: 'Pending',
-    date: '2026-07-15'
+    message: 'Viaje enológico por el Alt Penedès.',
+    privacyAccepted: true,
+    termsAccepted: true,
+    status: 'contacted',
+    internalNotes: [
+      { id: 'n4', timestamp: '2026-07-11T12:00:00Z', author: 'Familia', content: 'Contactado por WhatsApp. Esperando confirmación de vuelos.' }
+    ],
+    history: [
+      { id: 'h10', timestamp: '2026-07-11T08:50:00Z', author: 'Lucas Rossi', action: 'Solicitud enviada' },
+      { id: 'h11', timestamp: '2026-07-11T12:00:00Z', author: 'Familia', action: 'Estado cambiado a Contactada' }
+    ],
+    createdAt: '2026-07-11T08:50:00Z',
+    updatedAt: '2026-07-11T12:00:00Z'
   }
 ];
 

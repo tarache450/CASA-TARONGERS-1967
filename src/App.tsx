@@ -5,11 +5,12 @@ import About from './components/About';
 import BookingCalendar from './components/BookingCalendar';
 import OwnerDashboard from './components/OwnerDashboard';
 
-import { Booking, Payment, PropertySettings, BookingStatus, PaymentStatus, PaymentMethod } from './types';
-import { INITIAL_BOOKINGS, INITIAL_PAYMENTS, INITIAL_PROPERTY_SETTINGS, IMAGES } from './data';
-import { Mail, Phone, MapPin, Calendar, Heart, ShieldCheck } from 'lucide-react';
+import { Booking, PropertySettings, BookingStatus, BookingNote, BookingActivity } from './types';
+import { INITIAL_BOOKINGS, INITIAL_PROPERTY_SETTINGS } from './data';
+import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, TRANSLATIONS } from './translations';
+import { notificationService } from './services/notificationService';
 
 export default function App() {
   // Navigation active tab: 'guest' (website) or 'dashboard' (family area)
@@ -18,13 +19,11 @@ export default function App() {
   // Core Persistent State
   const [language, setLanguage] = useState<Language>('ca');
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [settings, setSettings] = useState<PropertySettings>(INITIAL_PROPERTY_SETTINGS);
 
-  // Initialize from LocalStorage or seed data
+  // Initialize from LocalStorage or seed data with schema migration
   useEffect(() => {
     const localBookings = localStorage.getItem('tarongers_bookings_v1');
-    const localPayments = localStorage.getItem('tarongers_payments_v1');
     const localSettings = localStorage.getItem('tarongers_settings_v1');
     const localLang = localStorage.getItem('tarongers_language_v1') as Language | null;
 
@@ -35,21 +34,66 @@ export default function App() {
     }
 
     if (localBookings) {
-      setBookings(JSON.parse(localBookings));
+      try {
+        const rawBookings: any[] = JSON.parse(localBookings);
+        // Migrate legacy statuses and fields safely
+        const migrated: Booking[] = rawBookings.map((b) => {
+          let status: BookingStatus = b.status;
+          if (b.status === 'Pending') status = 'pending_review';
+          else if (b.status === 'Confirmed') status = 'confirmed';
+          else if (b.status === 'Cancelled') status = 'cancelled';
+          else if (b.status === 'Family Use') status = 'blocked';
+
+          const history: BookingActivity[] = Array.isArray(b.history) && b.history.length > 0
+            ? b.history
+            : [
+                {
+                  id: `act-${b.id || 'init'}-0`,
+                  timestamp: b.createdAt || new Date().toISOString(),
+                  action: 'created',
+                  actor: b.guestName || 'Sistema',
+                  description: 'Registro inicial de reserva'
+                }
+              ];
+
+          const internalNotes: BookingNote[] = Array.isArray(b.internalNotes) ? b.internalNotes : [];
+
+          return {
+            id: b.id,
+            guestName: b.guestName || 'Huésped',
+            guestEmail: b.guestEmail || '',
+            guestPhone: b.guestPhone || '',
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            guestsCount: b.guestsCount || 2,
+            notes: b.notes || '',
+            internalNotes,
+            status,
+            createdAt: b.createdAt || new Date().toISOString(),
+            updatedAt: b.updatedAt,
+            privacyAccepted: b.privacyAccepted !== undefined ? b.privacyAccepted : true,
+            termsAccepted: b.termsAccepted !== undefined ? b.termsAccepted : true,
+            history
+          };
+        });
+        setBookings(migrated);
+        localStorage.setItem('tarongers_bookings_v1', JSON.stringify(migrated));
+      } catch (err) {
+        console.error('Error parsing stored bookings, using defaults:', err);
+        setBookings(INITIAL_BOOKINGS);
+        localStorage.setItem('tarongers_bookings_v1', JSON.stringify(INITIAL_BOOKINGS));
+      }
     } else {
       setBookings(INITIAL_BOOKINGS);
       localStorage.setItem('tarongers_bookings_v1', JSON.stringify(INITIAL_BOOKINGS));
     }
 
-    if (localPayments) {
-      setPayments(JSON.parse(localPayments));
-    } else {
-      setPayments(INITIAL_PAYMENTS);
-      localStorage.setItem('tarongers_payments_v1', JSON.stringify(INITIAL_PAYMENTS));
-    }
-
     if (localSettings) {
-      setSettings(JSON.parse(localSettings));
+      try {
+        setSettings(JSON.parse(localSettings));
+      } catch (e) {
+        setSettings(INITIAL_PROPERTY_SETTINGS);
+      }
     } else {
       setSettings(INITIAL_PROPERTY_SETTINGS);
     }
@@ -57,19 +101,13 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.lang = language;
-    document.title = 'Casa Tarongers';
+    document.title = 'Casa Tarongers 1967';
   }, [language]);
 
   // Save Bookings
   const saveBookingsState = (newBookings: Booking[]) => {
     setBookings(newBookings);
     localStorage.setItem('tarongers_bookings_v1', JSON.stringify(newBookings));
-  };
-
-  // Save Payments
-  const savePaymentsState = (newPayments: Payment[]) => {
-    setPayments(newPayments);
-    localStorage.setItem('tarongers_payments_v1', JSON.stringify(newPayments));
   };
 
   // Save Settings
@@ -79,103 +117,185 @@ export default function App() {
   };
 
   // Guest booking form submissions
-  const handleAddBookingFromGuest = (bookingData: Omit<Booking, 'id' | 'createdAt'>) => {
-    const newBookingId = `B${(bookings.length + 1).toString().padStart(3, '0')}`;
+  const handleAddBookingFromGuest = (
+    bookingData: Omit<Booking, 'id' | 'createdAt' | 'history' | 'internalNotes'>
+  ) => {
+    const year = new Date().getFullYear();
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const newBookingId = `REQ-${year}-${randomSuffix}`;
+    const nowIso = new Date().toISOString();
+
+    const initialActivity: BookingActivity = {
+      id: `act-${Date.now()}`,
+      timestamp: nowIso,
+      action: 'created',
+      actor: bookingData.guestName,
+      description: 'Solicitud de reserva enviada desde la web pública'
+    };
+
     const newBooking: Booking = {
       ...bookingData,
       id: newBookingId,
-      createdAt: new Date().toISOString()
+      createdAt: nowIso,
+      status: 'new_request',
+      history: [initialActivity],
+      internalNotes: []
     };
 
-    const updatedBookings = [...bookings, newBooking];
+    const updatedBookings = [newBooking, ...bookings];
     saveBookingsState(updatedBookings);
 
-    // If it's a Guest booking, we automatically add a corresponding pending payment
-    if (bookingData.status !== 'Family Use') {
-      const newPaymentId = `P${(payments.length + 1).toString().padStart(3, '0')}`;
-      const newPayment: Payment = {
-        id: newPaymentId,
-        bookingId: newBookingId,
-        guestName: bookingData.guestName,
-        amount: bookingData.totalPrice,
-        method: bookingData.paymentMethod,
-        status: bookingData.paymentStatus,
-        date: bookingData.checkIn // Date scheduled
-      };
-      const updatedPayments = [...payments, newPayment];
-      savePaymentsState(updatedPayments);
-    }
+    // Notifications (prepared & logged)
+    notificationService.sendGuestRequestReceived(newBooking);
+    notificationService.sendFamilyNewRequestAlert(newBooking);
   };
 
-  // Owner manually adds a booking or blocks a date range
-  const handleAddManualBooking = (manualBooking: Booking) => {
-    const updatedBookings = [...bookings, manualBooking];
-    saveBookingsState(updatedBookings);
+  // Update booking status
+  const handleUpdateBookingStatus = (id: string, status: BookingStatus, note?: string) => {
+    const nowIso = new Date().toISOString();
+    let updatedTarget: Booking | null = null;
 
-    // If it's not family block, log associated payment ledger entry
-    if (manualBooking.status !== 'Family Use') {
-      const newPaymentId = `P${(payments.length + 1).toString().padStart(3, '0')}`;
-      const newPayment: Payment = {
-        id: newPaymentId,
-        bookingId: manualBooking.id,
-        guestName: manualBooking.guestName,
-        amount: manualBooking.totalPrice,
-        method: manualBooking.paymentMethod,
-        status: manualBooking.paymentStatus,
-        date: manualBooking.checkIn
-      };
-      const updatedPayments = [...payments, newPayment];
-      savePaymentsState(updatedPayments);
-    }
-  };
-
-  // Owner modifies status of a booking (approve/cancel)
-  const handleUpdateBookingStatus = (id: string, status: BookingStatus) => {
-    const updatedBookings = bookings.map(b => {
+    const updatedBookings = bookings.map((b) => {
       if (b.id === id) {
-        // If booking is Cancelled, mark paymentStatus as refunded or pending/cancelled
-        return { 
-          ...b, 
-          status, 
-          paymentStatus: status === 'Cancelled' ? 'Refunded' : b.paymentStatus 
+        const newActivity: BookingActivity = {
+          id: `act-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          timestamp: nowIso,
+          action: 'status_changed',
+          actor: 'Familia',
+          description: `Estado actualizado a "${status}"${note ? `: ${note}` : ''}`
         };
+        updatedTarget = {
+          ...b,
+          status,
+          updatedAt: nowIso,
+          history: [newActivity, ...(b.history || [])]
+        };
+        return updatedTarget;
       }
       return b;
     });
+
     saveBookingsState(updatedBookings);
 
-    // Keep payments in sync
-    const updatedPayments = payments.map(p => {
-      if (p.bookingId === id) {
-        return { 
-          ...p, 
-          status: status === 'Cancelled' ? 'Refunded' as PaymentStatus : p.status 
-        };
+    if (updatedTarget) {
+      if (status === 'confirmed') {
+        notificationService.sendGuestBookingConfirmed(updatedTarget);
+      } else if (status === 'rejected') {
+        notificationService.sendGuestBookingRejected(updatedTarget);
+      } else if (status === 'cancelled') {
+        notificationService.sendGuestBookingCancelled(updatedTarget);
       }
-      return p;
-    });
-    savePaymentsState(updatedPayments);
+    }
   };
 
-  // Owner marks a payment as Received
-  const handleUpdatePaymentStatus = (bookingId: string, status: PaymentStatus, method: PaymentMethod) => {
-    // 1. Update Booking payment status
-    const updatedBookings = bookings.map(b => {
-      if (b.id === bookingId) {
-        return { ...b, paymentStatus: status, paymentMethod: method };
+  // Update general booking details (dates, guests, notes)
+  const handleUpdateBooking = (updatedBooking: Booking) => {
+    const nowIso = new Date().toISOString();
+    const newActivity: BookingActivity = {
+      id: `act-${Date.now()}`,
+      timestamp: nowIso,
+      action: 'edited',
+      actor: 'Familia',
+      description: 'Datos de la reserva modificados manualmente'
+    };
+
+    const updatedBookings = bookings.map((b) => {
+      if (b.id === updatedBooking.id) {
+        return {
+          ...updatedBooking,
+          updatedAt: nowIso,
+          history: [newActivity, ...(b.history || [])]
+        };
       }
       return b;
     });
-    saveBookingsState(updatedBookings);
 
-    // 2. Update Payments log
-    const updatedPayments = payments.map(p => {
-      if (p.bookingId === bookingId) {
-        return { ...p, status, method };
+    saveBookingsState(updatedBookings);
+  };
+
+  // Add an internal note to a booking
+  const handleAddNote = (bookingId: string, noteText: string, author: string) => {
+    const nowIso = new Date().toISOString();
+    const newNote: BookingNote = {
+      id: `note-${Date.now()}`,
+      createdAt: nowIso,
+      author: author || 'Familia',
+      text: noteText
+    };
+
+    const activity: BookingActivity = {
+      id: `act-${Date.now()}`,
+      timestamp: nowIso,
+      action: 'note_added',
+      actor: author || 'Familia',
+      description: `Nota interna añadida: "${noteText.slice(0, 40)}${noteText.length > 40 ? '...' : ''}"`
+    };
+
+    const updatedBookings = bookings.map((b) => {
+      if (b.id === bookingId) {
+        return {
+          ...b,
+          internalNotes: [newNote, ...(b.internalNotes || [])],
+          history: [activity, ...(b.history || [])]
+        };
       }
-      return p;
+      return b;
     });
-    savePaymentsState(updatedPayments);
+
+    saveBookingsState(updatedBookings);
+  };
+
+  // Block dates manually
+  const handleBlockDates = (block: { checkIn: string; checkOut: string; reason: string; createdBy: string }) => {
+    const nowIso = new Date().toISOString();
+    const id = `BLK-${Date.now().toString().slice(-6)}`;
+
+    const newBlock: Booking = {
+      id,
+      guestName: block.reason.trim() || 'Bloqueo familiar',
+      guestEmail: '',
+      guestPhone: '',
+      checkIn: block.checkIn,
+      checkOut: block.checkOut,
+      guestsCount: 0,
+      notes: block.reason,
+      status: 'blocked',
+      createdAt: nowIso,
+      privacyAccepted: true,
+      termsAccepted: true,
+      history: [
+        {
+          id: `act-${Date.now()}`,
+          timestamp: nowIso,
+          action: 'created',
+          actor: block.createdBy || 'Familia',
+          description: `Fechas bloqueadas manualmente: ${block.reason || 'Sin motivo especificado'}`
+        }
+      ],
+      internalNotes: []
+    };
+
+    saveBookingsState([newBlock, ...bookings]);
+  };
+
+  // Unblock dates
+  const handleUnblockDates = (id: string) => {
+    saveBookingsState(bookings.filter((b) => b.id !== id));
+  };
+
+  // Delete booking permanently (requires explicit confirmation from UI)
+  const handleDeleteBooking = (id: string) => {
+    saveBookingsState(bookings.filter((b) => b.id !== id));
+  };
+
+  // Archive booking
+  const handleArchiveBooking = (id: string) => {
+    handleUpdateBookingStatus(id, 'archived', 'Reserva archivada');
+  };
+
+  // Restore archived booking
+  const handleRestoreBooking = (id: string) => {
+    handleUpdateBookingStatus(id, 'pending_review', 'Reserva restaurada a revisión');
   };
 
   const handleLanguageChange = (lang: Language) => {
@@ -193,9 +313,9 @@ export default function App() {
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col justify-between selection:bg-primary-600 selection:text-white">
       {/* Dynamic Header */}
-      <Navbar 
-        currentTab={activeTab} 
-        onChangeTab={setActiveTab} 
+      <Navbar
+        currentTab={activeTab}
+        onChangeTab={setActiveTab}
         language={language}
         onLanguageChange={handleLanguageChange}
       />
@@ -218,10 +338,10 @@ export default function App() {
               <About language={language} />
 
               {/* Calendar & booking form */}
-              <BookingCalendar 
-                bookings={bookings} 
-                settings={settings} 
-                onAddBooking={handleAddBookingFromGuest} 
+              <BookingCalendar
+                bookings={bookings}
+                settings={settings}
+                onAddBooking={handleAddBookingFromGuest}
                 language={language}
               />
             </motion.div>
@@ -234,14 +354,19 @@ export default function App() {
               transition={{ duration: 0.2 }}
             >
               {/* Owner internal control dashboard */}
-              <OwnerDashboard 
+              <OwnerDashboard
                 bookings={bookings}
-                payments={payments}
                 settings={settings}
                 onUpdateSettings={saveSettingsState}
-                onAddBooking={handleAddManualBooking}
+                onAddBooking={(b) => saveBookingsState([b, ...bookings])}
                 onUpdateBookingStatus={handleUpdateBookingStatus}
-                onUpdatePaymentStatus={handleUpdatePaymentStatus}
+                onUpdateBooking={handleUpdateBooking}
+                onDeleteBooking={handleDeleteBooking}
+                onArchiveBooking={handleArchiveBooking}
+                onRestoreBooking={handleRestoreBooking}
+                onAddNote={handleAddNote}
+                onBlockDates={handleBlockDates}
+                onUnblockDates={handleUnblockDates}
                 language={language}
                 onLanguageChange={handleLanguageChange}
               />
@@ -250,10 +375,9 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Elegant, high-end design Footer in Warm Forest Green matching mockup */}
+      {/* Elegant, high-end design Footer */}
       <footer className="bg-[#1C2E15] text-stone-200 border-t border-stone-800/20 pt-10 pb-8 md:pt-16 md:pb-12">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-          
           {/* Logo and signature */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
@@ -272,22 +396,43 @@ export default function App() {
             <h4 className="font-serif font-medium text-white tracking-wide mb-4">{ft.footInfo}</h4>
             <ul className="space-y-2 text-sm text-stone-300">
               <li>
-                <button onClick={() => { setActiveTab('guest'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-accent-terracotta transition-colors cursor-pointer text-left">
+                <button
+                  onClick={() => {
+                    setActiveTab('guest');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-accent-terracotta transition-colors cursor-pointer text-left"
+                >
                   {ft.footBackToTop}
                 </button>
               </li>
               <li>
-                <button onClick={() => { setActiveTab('guest'); setTimeout(() => document.getElementById('sobre-casa')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="hover:text-accent-terracotta transition-colors cursor-pointer text-left">
+                <button
+                  onClick={() => {
+                    setActiveTab('guest');
+                    setTimeout(() => document.getElementById('sobre-casa')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                  }}
+                  className="hover:text-accent-terracotta transition-colors cursor-pointer text-left"
+                >
                   {ft.aboutHouse}
                 </button>
               </li>
               <li>
-                <button onClick={() => { setActiveTab('guest'); setTimeout(() => document.getElementById('reservas')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="hover:text-accent-terracotta transition-colors cursor-pointer text-left">
+                <button
+                  onClick={() => {
+                    setActiveTab('guest');
+                    setTimeout(() => document.getElementById('reservas')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                  }}
+                  className="hover:text-accent-terracotta transition-colors cursor-pointer text-left"
+                >
                   {ft.footFreeDates}
                 </button>
               </li>
               <li>
-                <button onClick={() => setActiveTab('dashboard')} className="hover:text-accent-terracotta transition-colors text-xs font-mono font-bold flex items-center gap-1 mt-2 text-stone-200 cursor-pointer text-left">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className="hover:text-accent-terracotta transition-colors text-xs font-mono font-bold flex items-center gap-1 mt-2 text-stone-200 cursor-pointer text-left"
+                >
                   <span>{ft.footFamilyAccess}</span>
                 </button>
               </li>
@@ -308,11 +453,16 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-accent-terracotta shrink-0" />
-                <span className="font-serif text-xs">{language === 'ca' ? 'Gelida, Catalunya, Espanya' : language === 'en' ? 'Gelida, Catalonia, Spain' : 'Gelida, Catalunya, España'}</span>
+                <span className="font-serif text-xs">
+                  {language === 'ca'
+                    ? 'Gelida, Catalunya, Espanya'
+                    : language === 'en'
+                    ? 'Gelida, Catalonia, Spain'
+                    : 'Gelida, Catalunya, España'}
+                </span>
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Bottom Bar */}
@@ -321,8 +471,12 @@ export default function App() {
             &copy; {new Date().getFullYear()} Casa Tarongers. {ft.footRights}
           </div>
           <div className="flex gap-6">
-            <a href="#about" className="hover:text-stone-200 transition-colors">{ft.footPrivacy}</a>
-            <a href="#about" className="hover:text-stone-200 transition-colors">{ft.footTerms}</a>
+            <a href="#about" className="hover:text-stone-200 transition-colors">
+              {ft.footPrivacy}
+            </a>
+            <a href="#about" className="hover:text-stone-200 transition-colors">
+              {ft.footTerms}
+            </a>
           </div>
           <div className="flex items-center gap-1 font-sans">
             <span>{ft.footMadeWith}</span>

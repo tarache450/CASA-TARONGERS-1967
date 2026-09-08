@@ -1,64 +1,128 @@
-import React, { useState } from 'react';
-import { Booking, Payment, PropertySettings, BookingStatus, PaymentStatus, PaymentMethod } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Booking, PropertySettings, BookingStatus } from '../types';
 import { Language, TRANSLATIONS } from '../translations';
-import { 
-  Lock, TrendingUp, Calendar, CreditCard, Users, Plus, Check, X, 
-  Trash2, Sliders, DollarSign, Receipt, RefreshCw, AlertCircle, Eye, EyeOff
+import {
+  Lock,
+  Calendar as CalendarIcon,
+  Search,
+  Download,
+  Copy,
+  Phone,
+  Mail,
+  MessageSquare,
+  ExternalLink,
+  ShieldCheck,
+  Clock,
+  Archive,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  AlertTriangle,
+  ArrowUpDown,
+  CheckCircle2,
+  XCircle,
+  PhoneCall,
+  History,
+  FileText,
+  Sliders,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  X,
+  Check,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface OwnerDashboardProps {
   bookings: Booking[];
-  payments: Payment[];
   settings: PropertySettings;
   onUpdateSettings: (settings: PropertySettings) => void;
   onAddBooking: (booking: Booking) => void;
-  onUpdateBookingStatus: (id: string, status: BookingStatus) => void;
-  onUpdatePaymentStatus: (bookingId: string, status: PaymentStatus, method: PaymentMethod) => void;
+  onUpdateBookingStatus: (id: string, status: BookingStatus, note?: string) => void;
+  onUpdateBooking: (booking: Booking) => void;
+  onDeleteBooking: (id: string) => void;
+  onArchiveBooking: (id: string) => void;
+  onRestoreBooking: (id: string) => void;
+  onAddNote: (id: string, noteText: string, author: string) => void;
+  onBlockDates: (block: { checkIn: string; checkOut: string; reason: string; createdBy: string }) => void;
+  onUnblockDates: (id: string) => void;
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
 
 export default function OwnerDashboard({
   bookings,
-  payments,
   settings,
   onUpdateSettings,
-  onAddBooking,
   onUpdateBookingStatus,
-  onUpdatePaymentStatus,
-  language,
-  onLanguageChange
+  onDeleteBooking,
+  onArchiveBooking,
+  onRestoreBooking,
+  onAddNote,
+  onBlockDates,
+  language
 }: OwnerDashboardProps) {
   const t = TRANSLATIONS[language];
-  // Authentication State
+
+  // Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [showPin, setShowPin] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'payments' | 'settings' | 'preservation'>('overview');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'settings'>('dashboard');
 
-  // New manual booking state
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newGuestName, setNewGuestName] = useState('');
-  const [newCheckIn, setNewCheckIn] = useState('');
-  const [newCheckOut, setNewCheckOut] = useState('');
-  const [newGuestsCount, setNewGuestsCount] = useState(2);
-  const [newType, setNewType] = useState<'guest' | 'family'>('guest');
-  const [newMethod, setNewMethod] = useState<PaymentMethod>('Bank Transfer');
-  const [newNotes, setNewNotes] = useState('');
-  const [newPriceManual, setNewPriceManual] = useState<number | ''>('');
-  const [addError, setAddError] = useState('');
+  // Filter & Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilterFrom, setDateFilterFrom] = useState('');
+  const [dateFilterTo, setDateFilterTo] = useState('');
+  const [sortBy, setSortBy] = useState<'checkIn' | 'createdAt' | 'status'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Rate Editing state
-  const [baseRate, setBaseRate] = useState(settings.basePrice);
-  const [highSeasonRate, setHighSeasonRate] = useState(settings.highSeasonPrice);
-  const [cleaningFee, setCleaningFee] = useState(settings.cleaningFee);
-  const [capacity, setCapacity] = useState(settings.capacity);
+  // Selected Booking Detail Modal / Drawer
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
-  // Auth Handler
+  // Delete Confirmation Modal State
+  const [bookingToDelete, setBookingToDelete] = useState<Booking | null>(null);
+
+  // Manual Block Dates Modal State
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [blockCheckIn, setBlockCheckIn] = useState('');
+  const [blockCheckOut, setBlockCheckOut] = useState('');
+  const [blockReason, setBlockReason] = useState('');
+  const [blockAuthor, setBlockAuthor] = useState('');
+  const [blockError, setBlockError] = useState('');
+
+  // New Note State inside Detail View
+  const [newNoteText, setNewNoteText] = useState('');
+  const [newNoteAuthor, setNewNoteAuthor] = useState('');
+  const [copiedItem, setCopiedItem] = useState<string | null>(null);
+
+  // Calendar tab navigation state
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
+
+  // Settings Edit State
+  const [tempCapacity, setTempCapacity] = useState(settings.capacity);
+  const [tempMinNights, setTempMinNights] = useState(settings.minStayNights || settings.minDays || 2);
+  const [tempCheckInTime, setTempCheckInTime] = useState(settings.checkInTime || '16:00');
+  const [tempCheckOutTime, setTempCheckOutTime] = useState(settings.checkOutTime || '11:00');
+  const [tempContactEmail, setTempContactEmail] = useState(settings.contactEmail || 'acivit@coac.net');
+  const [tempContactPhone, setTempContactPhone] = useState(settings.contactPhone || '+34 629 30 85 70');
+  const [settingsSavedMessage, setSettingsSavedMessage] = useState(false);
+
+  // Format date helper
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const guestsWord = language === 'en' ? 'guests' : 'huéspedes';
+
+  // Login handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (pin === '1967') {
@@ -74,242 +138,373 @@ export default function OwnerDashboard({
     setPin('');
   };
 
-  // Calculations for Stats
-  const activeBookings = bookings.filter(b => b.status !== 'Cancelled');
-  
-  // Total Revenue: Confirmed & Paid bookings
-  const paidBookings = bookings.filter(b => b.status === 'Confirmed' && b.paymentStatus === 'Paid');
-  const totalRevenue = paidBookings.reduce((sum, b) => sum + b.totalPrice, 0);
+  // Copy helper
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedItem(label);
+    setTimeout(() => setCopiedItem(null), 2000);
+  };
 
-  // Pending approval list
-  const pendingApprovalsCount = bookings.filter(b => b.status === 'Pending').length;
+  // Compute stats strictly with real data (no fake numbers)
+  const metrics = useMemo(() => {
+    const totalCount = bookings.length;
+    const newRequests = bookings.filter((b) => b.status === 'new_request');
+    const pendingReview = bookings.filter((b) => b.status === 'pending_review' || b.status === 'contacted');
+    const confirmed = bookings.filter((b) => b.status === 'confirmed');
+    const rejected = bookings.filter((b) => b.status === 'rejected');
+    const cancelled = bookings.filter((b) => b.status === 'cancelled');
+    const blocked = bookings.filter((b) => b.status === 'blocked');
 
-  // Unpaid/Pending payments total
-  const pendingPaymentsAmount = bookings
-    .filter(b => b.status === 'Confirmed' && b.paymentStatus === 'Pending')
-    .reduce((sum, b) => sum + b.totalPrice, 0);
+    // Upcoming arrivals (confirmed, checkIn >= today)
+    const upcomingArrivals = confirmed
+      .filter((b) => b.checkIn >= todayStr)
+      .sort((a, b) => a.checkIn.localeCompare(b.checkIn));
 
-  // Occupancy Calculation (percentage of days booked from July 1st to Sept 30th 2026 - 92 days)
-  const calculateOccupancy = () => {
-    const totalDays = 92; // July, August, Sept
-    const bookedDaysSet = new Set<string>();
+    // Upcoming departures (confirmed, checkOut >= today)
+    const upcomingDepartures = confirmed
+      .filter((b) => b.checkOut >= todayStr)
+      .sort((a, b) => a.checkOut.localeCompare(b.checkOut));
 
-    activeBookings.forEach(b => {
-      const [sYear, sMonth, sDay] = b.checkIn.split('-').map(Number);
-      const [eYear, eMonth, eDay] = b.checkOut.split('-').map(Number);
-      
-      let current = new Date(sYear, sMonth - 1, sDay);
-      const end = new Date(eYear, eMonth - 1, eDay);
-      while (current < end) {
-        const yyyy = current.getFullYear();
-        const mm = String(current.getMonth() + 1).padStart(2, '0');
-        const dd = String(current.getDate()).padStart(2, '0');
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-        // Only count within July-Sept 2026
-        if (dateStr >= '2026-07-01' && dateStr <= '2026-09-30') {
-          bookedDaysSet.add(dateStr);
-        }
-        current.setDate(current.getDate() + 1);
+    // Calculate nights for confirmed bookings
+    let totalConfirmedNights = 0;
+    const occupiedDaysSet = new Set<string>();
+
+    confirmed.forEach((b) => {
+      const [sY, sM, sD] = b.checkIn.split('-').map(Number);
+      const [eY, eM, eD] = b.checkOut.split('-').map(Number);
+      const start = new Date(sY, sM - 1, sD);
+      const end = new Date(eY, eM - 1, eD);
+      const nights = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+      totalConfirmedNights += nights;
+
+      let curr = new Date(start);
+      while (curr < end) {
+        const y = curr.getFullYear();
+        const m = String(curr.getMonth() + 1).padStart(2, '0');
+        const d = String(curr.getDate()).padStart(2, '0');
+        occupiedDaysSet.add(`${y}-${m}-${d}`);
+        curr.setDate(curr.getDate() + 1);
       }
     });
 
-    const bookedCount = bookedDaysSet.size;
-    return Math.round((bookedCount / totalDays) * 100);
+    const occupiedDaysCount = occupiedDaysSet.size;
+
+    // Average nights per confirmed booking
+    const avgNights = confirmed.length > 0 ? (totalConfirmedNights / confirmed.length).toFixed(1) : null;
+
+    // Current month bookings
+    const currentYear = new Date().getFullYear();
+    const currentMonthNum = String(new Date().getMonth() + 1).padStart(2, '0');
+    const currentMonthPrefix = `${currentYear}-${currentMonthNum}`;
+
+    const currentMonthBookings = bookings.filter(
+      (b) => b.checkIn.startsWith(currentMonthPrefix) || b.createdAt.startsWith(currentMonthPrefix)
+    );
+
+    // Previous month comparison
+    const prevMonthDate = new Date(currentYear, new Date().getMonth() - 1, 1);
+    const prevMonthPrefix = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    const prevMonthBookings = bookings.filter(
+      (b) => b.checkIn.startsWith(prevMonthPrefix) || b.createdAt.startsWith(prevMonthPrefix)
+    );
+
+    return {
+      totalCount,
+      newRequestsCount: newRequests.length,
+      pendingCount: pendingReview.length,
+      confirmedCount: confirmed.length,
+      rejectedCount: rejected.length,
+      cancelledCount: cancelled.length,
+      blockedCount: blocked.length,
+      upcomingArrivals,
+      upcomingDepartures,
+      totalConfirmedNights,
+      occupiedDaysCount,
+      avgNights,
+      currentMonthCount: currentMonthBookings.length,
+      prevMonthCount: prevMonthBookings.length
+    };
+  }, [bookings, todayStr]);
+
+  // Filtered & Sorted bookings
+  const filteredBookings = useMemo(() => {
+    return bookings
+      .filter((b) => {
+        // Status filter
+        if (statusFilter !== 'all' && b.status !== statusFilter) {
+          return false;
+        }
+
+        // Date range filter
+        if (dateFilterFrom && b.checkOut < dateFilterFrom) {
+          return false;
+        }
+        if (dateFilterTo && b.checkIn > dateFilterTo) {
+          return false;
+        }
+
+        // Search query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const nameMatch = b.guestName.toLowerCase().includes(q);
+          const emailMatch = b.guestEmail?.toLowerCase().includes(q);
+          const phoneMatch = b.guestPhone?.toLowerCase().includes(q);
+          const idMatch = b.id.toLowerCase().includes(q);
+          return nameMatch || emailMatch || phoneMatch || idMatch;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        let comp = 0;
+        if (sortBy === 'checkIn') {
+          comp = a.checkIn.localeCompare(b.checkIn);
+        } else if (sortBy === 'createdAt') {
+          comp = a.createdAt.localeCompare(b.createdAt);
+        } else if (sortBy === 'status') {
+          comp = a.status.localeCompare(b.status);
+        }
+        return sortOrder === 'asc' ? comp : -comp;
+      });
+  }, [bookings, statusFilter, dateFilterFrom, dateFilterTo, searchQuery, sortBy, sortOrder]);
+
+  // Selected booking object
+  const activeSelectedBooking = useMemo(() => {
+    if (!selectedBookingId) return null;
+    return bookings.find((b) => b.id === selectedBookingId) || null;
+  }, [bookings, selectedBookingId]);
+
+  // Export to CSV
+  const handleExportCSV = () => {
+    const headers = [
+      'ID',
+      'Huésped',
+      'Email',
+      'Teléfono',
+      'Check-In',
+      'Check-Out',
+      'Huéspedes',
+      'Estado',
+      'Fecha Creación',
+      'Mensaje Huésped',
+      'Notas Internas'
+    ];
+
+    const rows = filteredBookings.map((b) => [
+      `"${b.id}"`,
+      `"${(b.guestName || '').replace(/"/g, '""')}"`,
+      `"${(b.guestEmail || '').replace(/"/g, '""')}"`,
+      `"${(b.guestPhone || '').replace(/"/g, '""')}"`,
+      `"${b.checkIn}"`,
+      `"${b.checkOut}"`,
+      b.guestsCount,
+      `"${b.status}"`,
+      `"${b.createdAt}"`,
+      `"${(b.notes || '').replace(/"/g, '""')}"`,
+      `"${(b.internalNotes || []).map((n) => `[${n.author}: ${n.text}]`).join('; ').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reservas_tarongers_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const occupancyRate = calculateOccupancy();
-
-  // Helper to calculate total price for manual additions
-  const getCalculatedPrice = (start: string, end: string, type: 'guest' | 'family') => {
-    if (type === 'family') return 0;
-    if (!start || !end) return 0;
-    
-    let total = 0;
-    const [sYear, sMonth, sDay] = start.split('-').map(Number);
-    const [eYear, eMonth, eDay] = end.split('-').map(Number);
-    
-    let current = new Date(sYear, sMonth - 1, sDay);
-    const targetEnd = new Date(eYear, eMonth - 1, eDay);
-
-    while (current < targetEnd) {
-      const m = current.getMonth();
-      const isHigh = m === 6 || m === 7; // July or August
-      total += isHigh ? settings.highSeasonPrice : settings.basePrice;
-      current.setDate(current.getDate() + 1);
-    }
-    return total + settings.cleaningFee;
-  };
-
-  const handleAddManualBooking = (e: React.FormEvent) => {
+  // Add internal note
+  const handleCreateNote = (e: React.FormEvent) => {
     e.preventDefault();
-    setAddError('');
+    if (!selectedBookingId || !newNoteText.trim()) return;
+    onAddNote(selectedBookingId, newNoteText.trim(), newNoteAuthor.trim() || 'Familia');
+    setNewNoteText('');
+  };
 
-    if (!newGuestName || !newCheckIn || !newCheckOut) {
-      setAddError('Por favor completa las fechas y el nombre.');
+  // Manual block submit
+  const handleBlockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBlockError('');
+
+    if (!blockCheckIn || !blockCheckOut) {
+      setBlockError('Selecciona las fechas de inicio y fin.');
       return;
     }
 
-    if (newCheckOut <= newCheckIn) {
-      setAddError('La fecha de salida debe ser posterior a la de entrada.');
+    if (blockCheckOut <= blockCheckIn) {
+      setBlockError(t.errInvalidRange);
       return;
     }
 
-    // Check overlaps
-    const hasOverlap = bookings.some(b => {
-      if (b.status === 'Cancelled') return false;
-      // Overlap formula: (start1 < end2) && (start2 < end1)
-      return (b.checkIn < newCheckOut) && (newCheckIn < b.checkOut);
+    // Check collision with confirmed bookings
+    const hasCollision = bookings.some((b) => {
+      if (b.status !== 'confirmed') return false;
+      return !(blockCheckOut <= b.checkIn || blockCheckIn >= b.checkOut);
     });
 
-    if (hasOverlap) {
-      setAddError('Las fechas seleccionadas se solapan con una reserva existente.');
+    if (hasCollision) {
+      setBlockError('Existen reservas confirmadas en el rango de fechas que deseas bloquear.');
       return;
     }
 
-    const calculatedPrice = getCalculatedPrice(newCheckIn, newCheckOut, newType);
-    const finalPrice = newType === 'family' ? 0 : (newPriceManual !== '' ? Number(newPriceManual) : calculatedPrice);
+    onBlockDates({
+      checkIn: blockCheckIn,
+      checkOut: blockCheckOut,
+      reason: blockReason || 'Bloqueo manual',
+      createdBy: blockAuthor || 'Familia'
+    });
 
-    const manualBooking: Booking = {
-      id: `M${Date.now().toString().slice(-4)}`,
-      guestName: newType === 'family' ? `Uso Familiar - ${newGuestName}` : newGuestName,
-      guestEmail: newType === 'family' ? 'familiar@tarongers.es' : 'manual-booking@example.com',
-      guestPhone: '+34 --- -- -- --',
-      checkIn: newCheckIn,
-      checkOut: newCheckOut,
-      guestsCount: newGuestsCount,
-      totalPrice: finalPrice,
-      status: newType === 'family' ? 'Family Use' : 'Confirmed',
-      paymentStatus: newType === 'family' ? 'Paid' : 'Pending',
-      paymentMethod: newType === 'family' ? 'None' : newMethod,
-      notes: newNotes || (newType === 'family' ? 'Bloqueo manual de fechas familiar' : 'Reserva manual de huéspedes'),
-      createdAt: new Date().toISOString()
-    };
-
-    onAddBooking(manualBooking);
-
-    // Reset Form
-    setNewGuestName('');
-    setNewCheckIn('');
-    setNewCheckOut('');
-    setNewNotes('');
-    setNewPriceManual('');
-    setShowAddForm(false);
+    setShowBlockModal(false);
+    setBlockCheckIn('');
+    setBlockCheckOut('');
+    setBlockReason('');
+    setBlockAuthor('');
   };
 
+  // Settings submit
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateSettings({
       ...settings,
-      basePrice: Number(baseRate),
-      highSeasonPrice: Number(highSeasonRate),
-      cleaningFee: Number(cleaningFee),
-      capacity: Number(capacity)
+      capacity: tempCapacity,
+      minDays: tempMinNights,
+      minStayNights: tempMinNights,
+      checkInTime: tempCheckInTime,
+      checkOutTime: tempCheckOutTime,
+      contactEmail: tempContactEmail,
+      contactPhone: tempContactPhone
     });
-    alert('Configuración y tarifas guardadas correctamente.');
+    setSettingsSavedMessage(true);
+    setTimeout(() => setSettingsSavedMessage(false), 3000);
   };
 
-  // Monthly stats for custom SVG charts
-  const getMonthlyEarnings = () => {
-    const data = { Jul: 0, Ago: 0, Sep: 0 };
-    bookings.forEach(b => {
-      if (b.status === 'Confirmed' && b.paymentStatus === 'Paid') {
-        const monthStr = b.checkIn.slice(5, 7);
-        if (monthStr === '07') data.Jul += b.totalPrice;
-        if (monthStr === '08') data.Ago += b.totalPrice;
-        if (monthStr === '09') data.Sep += b.totalPrice;
-      }
-    });
-    return data;
+  // Status badge renderer
+  const renderStatusBadge = (status: BookingStatus) => {
+    switch (status) {
+      case 'new_request':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+            {t.statusNewRequest}
+          </span>
+        );
+      case 'pending_review':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <Clock className="w-3 h-3 text-amber-600" />
+            {t.statusPendingReview}
+          </span>
+        );
+      case 'contacted':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+            <PhoneCall className="w-3 h-3 text-purple-600" />
+            {t.statusContacted}
+          </span>
+        );
+      case 'confirmed':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+            {t.statusConfirmed}
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+            <XCircle className="w-3 h-3 text-stone-500" />
+            {t.statusRejected}
+          </span>
+        );
+      case 'cancelled':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+            <XCircle className="w-3 h-3 text-red-600" />
+            {t.statusCancelled}
+          </span>
+        );
+      case 'completed':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 border border-teal-200">
+            <Check className="w-3 h-3 text-teal-600" />
+            {t.statusCompleted}
+          </span>
+        );
+      case 'archived':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-200 text-stone-700 border border-stone-300">
+            <Archive className="w-3 h-3 text-stone-600" />
+            {t.statusArchived}
+          </span>
+        );
+      case 'blocked':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-200 text-stone-800 border border-stone-300">
+            <Lock className="w-3 h-3 text-stone-600" />
+            {t.statusBlocked}
+          </span>
+        );
+      default:
+        return <span>{status}</span>;
+    }
   };
 
-  const monthlyEarnings = getMonthlyEarnings();
-  const maxEarningsVal = Math.max(...Object.values(monthlyEarnings), 1000);
-
+  // Unauthenticated screen (PIN Protection)
   if (!isAuthenticated) {
     return (
-      <section id="gestion-familiar" className="py-24 bg-[#2D2D2D] text-white min-h-[80vh] flex items-center justify-center relative scroll-mt-20">
-        <div className="max-w-md w-full px-6">
-          
-          {/* Family Portal Language Selector */}
-          <div className="flex justify-center mb-8">
-            <div className="flex items-center gap-1.5 border border-stone-700 bg-[#1A1A1A] rounded-full p-1 text-[11px] font-sans">
-              {[
-                { code: 'ca', label: 'Català (CA)' },
-                { code: 'es', label: 'Español (ES)' },
-                { code: 'en', label: 'English (EN)' }
-              ].map((item) => (
+      <section className="min-h-[80vh] flex items-center justify-center py-16 px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-stone-200/80 p-8 sm:p-10 text-center">
+          <div className="w-14 h-14 bg-primary-800/10 text-primary-800 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-7 h-7 text-primary-800" />
+          </div>
+
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mb-2">
+            {t.familyDashboard}
+          </h2>
+          <p className="text-stone-500 text-sm mb-6 leading-relaxed">
+            {t.dashPinDesc}
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <div className="relative">
+                <input
+                  type={showPin ? 'text' : 'password'}
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="PIN"
+                  className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                />
                 <button
-                  key={item.code}
                   type="button"
-                  onClick={() => onLanguageChange(item.code as Language)}
-                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                    language === item.code
-                      ? 'bg-stone-100 text-stone-900 font-bold shadow-xs'
-                      : 'text-stone-400 hover:text-stone-100'
-                  }`}
+                  onClick={() => setShowPin(!showPin)}
+                  className="absolute right-3 top-3.5 text-stone-400 hover:text-stone-600"
                 >
-                  {item.label}
+                  {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-center mb-10">
-            <span className="text-stone-400 text-xs font-sans uppercase tracking-[0.2em] block mb-2">{t.dashPinTitle}</span>
-            <h2 className="text-3xl font-serif italic font-normal text-stone-100">{t.familyDashboard}</h2>
-            <p className="text-stone-300 text-xs mt-3 font-light leading-relaxed">
-              {t.dashPinDesc}
-            </p>
-          </div>
-
-          <div className="bg-[#1A1A1A] border border-stone-700 p-8 rounded-none">
-            <div className="flex justify-center mb-6">
-              <div className="w-12 h-12 bg-[#2D2D2D] border border-stone-700 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-stone-300" />
-              </div>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label className="block text-[10px] font-sans uppercase tracking-[0.15em] text-stone-300 mb-2">{t.dashPinLabel}</label>
-                <div className="relative">
-                  <input
-                    type={showPin ? 'text' : 'password'}
-                    required
-                    maxLength={4}
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                    placeholder={t.dashPinPlaceholder}
-                    className="w-full bg-[#2D2D2D] border border-stone-700 rounded-none pl-4 pr-11 py-3 text-center text-lg font-mono tracking-[0.3em] text-white focus:outline-none focus:ring-1 focus:ring-stone-500 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPin(!showPin)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-200"
-                  >
-                    {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
               </div>
 
               {pinError && (
-                <div className="text-red-400 text-xs bg-red-950/30 border border-red-900/40 p-3 rounded-none flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{pinError}</span>
-                </div>
+                <p className="text-red-600 text-xs mt-2 flex items-center justify-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {pinError}
+                </p>
               )}
+            </div>
 
-              <button
-                type="submit"
-                className="w-full bg-[#F9F7F2] hover:bg-white text-[#2D2D2D] font-semibold text-xs uppercase tracking-widest py-3.5 px-6 rounded-none shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01]"
-              >
-                <span>{t.dashPinBtn}</span>
-              </button>
-            </form>
-          </div>
+            <button
+              type="submit"
+              className="w-full py-3 px-4 rounded-xl bg-primary-800 text-white font-sans font-semibold text-sm hover:bg-primary-900 transition-all shadow-md cursor-pointer"
+            >
+              {t.dashPinBtn}
+            </button>
+          </form>
 
-          <p className="text-center text-xs text-stone-500 mt-6 uppercase tracking-wider font-sans">
-            {t.dashPinHint}
+          <p className="text-[11px] text-stone-400 mt-6 font-mono">
+            Casa Tarongers 1967 &bull; {language === 'ca' ? 'Ús exclusiu familiar' : language === 'en' ? 'Family exclusive use' : 'Uso exclusivo familiar'}
           </p>
         </div>
       </section>
@@ -317,740 +512,1270 @@ export default function OwnerDashboard({
   }
 
   return (
-    <section id="gestion-familiar" className="py-16 bg-[#F9F7F2] min-h-screen text-stone-800 border-t border-[#E5E1D8] scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-6">
-        
-        {/* Dashboard Top Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#E5E1D8] pb-6 mb-8 gap-4">
+    <section className="min-h-screen py-10 bg-stone-100/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Top Header Bar */}
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="flex items-center gap-3">
-              <span className="px-2 py-0.5 bg-[#2D2D2D] text-[#F9F7F2] text-[10px] font-sans font-semibold uppercase tracking-widest rounded-none">Familia</span>
-              <h2 className="text-3xl font-serif italic font-normal text-[#1A1A1A]">{t.dashTitle}</h2>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-primary-800/10 text-primary-900 text-xs font-serif font-bold uppercase tracking-wider mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-accent-terracotta" />
+              <span>{language === 'ca' ? 'Gestió Familiar' : language === 'en' ? 'Family Management' : 'Gestión Familiar'}</span>
             </div>
-            <p className="text-stone-500 text-xs mt-1 font-light">{t.dashSubtitle}</p>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900">
+              {t.familyDashboard}
+            </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 font-sans">
-            {/* Language Selector */}
-            <div className="flex items-center gap-1 border border-stone-300 bg-white rounded-full p-1 text-[10px] font-semibold">
-              {[
-                { code: 'ca', label: 'Català (CA)' },
-                { code: 'es', label: 'Español (ES)' },
-                { code: 'en', label: 'English (EN)' }
-              ].map((item) => (
-                <button
-                  key={item.code}
-                  type="button"
-                  onClick={() => onLanguageChange(item.code as Language)}
-                  className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                    language === item.code
-                      ? 'bg-stone-900 text-white font-bold'
-                      : 'text-stone-600 hover:text-stone-900'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setShowBlockModal(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-sans font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 border border-stone-300 cursor-pointer"
+            >
+              <Lock className="w-4 h-4 text-stone-600" />
+              <span>{t.btnBlockDates}</span>
+            </button>
 
             <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 text-xs uppercase tracking-wider rounded-none transition-all cursor-pointer ${activeTab === 'overview' ? 'bg-[#2D2D2D] text-white' : 'bg-transparent hover:bg-stone-200 border border-stone-300 text-stone-600'}`}
-            >
-              {t.dashSummary}
-            </button>
-            <button
+              type="button"
               onClick={handleLogout}
-              className="px-4 py-2 text-xs uppercase tracking-wider bg-stone-800 hover:bg-stone-950 text-white rounded-none transition-colors cursor-pointer border border-transparent"
+              className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-red-50 hover:text-red-700 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
             >
-              {t.dashLogout}
+              {language === 'ca' ? 'Tancar sessió' : language === 'en' ? 'Sign out' : 'Cerrar sesión'}
             </button>
           </div>
         </div>
 
-        {/* Dynamic Navigation Tabs inside dashboard */}
-        <div className="flex overflow-x-auto gap-1 border-b border-[#E5E1D8] pb-0.5 mb-8 scrollbar-none font-sans">
-          {[
-            { id: 'overview', name: t.dashTabOverview, icon: TrendingUp },
-            { id: 'bookings', name: t.dashTabBookings, icon: Calendar },
-            { id: 'payments', name: t.dashTabPayments, icon: CreditCard },
-            { id: 'settings', name: t.dashTabSettings, icon: Sliders },
-            { id: 'preservation', name: t.dashTabPreservation, icon: Receipt },
-          ].map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-5 py-3 text-xs uppercase tracking-widest border-b-2 transition-all whitespace-nowrap cursor-pointer rounded-none ${
-                  activeTab === tab.id 
-                    ? 'border-[#2D2D2D] text-[#2D2D2D] font-bold' 
-                    : 'border-transparent text-stone-500 hover:text-stone-800 hover:border-stone-300'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tab.name}</span>
-              </button>
-            );
-          })}
+        {/* Tab Navigation */}
+        <div className="flex border-b border-stone-200 bg-white rounded-xl p-1.5 shadow-sm overflow-x-auto gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+              activeTab === 'dashboard'
+                ? 'bg-primary-800 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+            }`}
+          >
+            <Sliders className="w-4 h-4" />
+            <span>{t.dashSummary}</span>
+            {metrics.newRequestsCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-accent-terracotta text-white">
+                {metrics.newRequestsCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('bookings')}
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+              activeTab === 'bookings'
+                ? 'bg-primary-800 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>{t.dashTabBookings}</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-stone-200 text-stone-700">
+              {metrics.totalCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('calendar')}
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+              activeTab === 'calendar'
+                ? 'bg-primary-800 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+            }`}
+          >
+            <CalendarIcon className="w-4 h-4" />
+            <span>{t.dashTabCalendar}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('settings')}
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+              activeTab === 'settings'
+                ? 'bg-primary-800 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+            }`}
+          >
+            <Sliders className="w-4 h-4" />
+            <span>{t.dashTabSettings}</span>
+          </button>
         </div>
 
-        {/* MAIN PANEL CONTENT */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.15 }}
-          >
-            {/* TAB 1: OVERVIEW & REAL-TIME FINANCIAL GRAPHICS */}
-            {activeTab === 'overview' && (
-              <div className="space-y-8">
-                {/* Real-time stats cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  
-                  {/* Total Revenue card */}
-                  <div className="bg-white p-6 border border-[#E5E1D8] flex items-start justify-between">
-                    <div>
-                      <span className="text-stone-400 text-[10px] font-sans uppercase tracking-widest">Cobrado Real</span>
-                      <h3 className="text-2xl font-mono font-bold text-[#2D2D2D] mt-2">€{totalRevenue}</h3>
-                      <p className="text-[10px] text-stone-500 mt-1 leading-normal">Confirmado y pagado en cuenta familiar.</p>
-                    </div>
-                    <div className="p-3 bg-[#F9F7F2] text-stone-700 border border-[#E5E1D8]">
-                      <DollarSign className="w-4 h-4" />
-                    </div>
-                  </div>
-
-                  {/* Occupancy Rate Card */}
-                  <div className="bg-white p-6 border border-[#E5E1D8] flex items-start justify-between">
-                    <div>
-                      <span className="text-stone-400 text-[10px] font-sans uppercase tracking-widest">Tasa Ocupación</span>
-                      <h3 className="text-2xl font-mono font-bold text-[#2D2D2D] mt-2">{occupancyRate}%</h3>
-                      <p className="text-[10px] text-stone-500 mt-1 leading-normal">Días ocupados del total verano.</p>
-                    </div>
-                    <div className="p-3 bg-[#F9F7F2] text-stone-700 border border-[#E5E1D8]">
-                      <TrendingUp className="w-4 h-4" />
-                    </div>
-                  </div>
-
-                  {/* Pending approvals card */}
-                  <div className="bg-white p-6 border border-[#E5E1D8] flex items-start justify-between">
-                    <div>
-                      <span className="text-stone-400 text-[10px] font-sans uppercase tracking-widest">Pendientes Aprobación</span>
-                      <h3 className="text-2xl font-mono font-bold text-[#2D2D2D] mt-2">{pendingApprovalsCount}</h3>
-                      <p className="text-[10px] text-stone-500 mt-1 leading-normal">Esperando confirmación de fechas.</p>
-                    </div>
-                    <div className="p-3 bg-[#F9F7F2] text-stone-700 border border-[#E5E1D8]">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-
-                  {/* Unpaid Bookings Amount card */}
-                  <div className="bg-white p-6 border border-[#E5E1D8] flex items-start justify-between">
-                    <div>
-                      <span className="text-stone-400 text-[10px] font-sans uppercase tracking-widest">Pagos Pendientes</span>
-                      <h3 className="text-2xl font-mono font-bold text-[#2D2D2D] mt-2">€{pendingPaymentsAmount}</h3>
-                      <p className="text-[10px] text-stone-500 mt-1 leading-normal">Confirmados con cobro pendiente.</p>
-                    </div>
-                    <div className="p-3 bg-[#F9F7F2] text-[#A69E8F] border border-[#E5E1D8]">
-                      <Receipt className="w-4 h-4" />
-                    </div>
-                  </div>
-
+        {/* TAB 1: DASHBOARD (Metrics strictly from real data) */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-8">
+            {/* Primary Status Metric Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-white rounded-2xl p-5 border border-blue-200 shadow-sm">
+                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider block mb-1">
+                  {t.metricNewRequests}
+                </span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-3xl font-serif font-bold text-blue-900">
+                    {metrics.newRequestsCount}
+                  </span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
                 </div>
+              </div>
 
-                {/* Real-time Analytics Visual Charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 font-sans">
-                  {/* Earnings Chart (Custom SVG bar chart) */}
-                  <div className="bg-white p-6 border border-[#E5E1D8]">
-                    <div className="flex items-center justify-between mb-6">
-                      <h4 className="text-base font-serif italic text-stone-800">Ingresos Mensuales Cobrados (2026)</h4>
-                      <span className="text-[9px] font-sans uppercase tracking-widest text-stone-500 bg-[#F9F7F2] px-2.5 py-0.5 border border-[#E5E1D8]">Real-time</span>
-                    </div>
+              <div className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
+                <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider block mb-1">
+                  {t.metricPendingReview}
+                </span>
+                <span className="text-3xl font-serif font-bold text-amber-900">
+                  {metrics.pendingCount}
+                </span>
+              </div>
 
-                    <div className="h-64 flex items-end justify-around pt-6 pb-2 px-4 relative">
-                      {/* Grid Lines */}
-                      <div className="absolute inset-x-0 top-0 border-t border-dashed border-[#E5E1D8]" />
-                      <div className="absolute inset-x-0 top-1/3 border-t border-dashed border-[#E5E1D8]" />
-                      <div className="absolute inset-x-0 top-2/3 border-t border-dashed border-[#E5E1D8]" />
-                      
-                      {Object.entries(monthlyEarnings).map(([monthName, value]) => {
-                        const pct = value > 0 ? (value / maxEarningsVal) * 80 + 10 : 0; // scale between 10% and 90%
-                        return (
-                          <div key={monthName} className="flex flex-col items-center w-24 group relative z-10">
-                            <span className="text-[9px] uppercase tracking-widest text-stone-200 opacity-0 group-hover:opacity-100 absolute -top-8 bg-[#2D2D2D] px-2 py-1 transition-opacity pointer-events-none">
-                              €{value}
-                            </span>
-                            <div 
-                              style={{ height: `${pct}%` }} 
-                              className="w-12 bg-[#2D2D2D] hover:bg-stone-700 transition-colors cursor-pointer relative rounded-none"
-                            />
-                            <span className="text-[10px] font-mono tracking-wider uppercase text-stone-500 mt-3">{monthName}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-[#E5E1D8] flex items-center justify-between text-[10px] text-stone-500 italic uppercase tracking-wider">
-                      <span>Representa el cobro completo de reservas confirmadas y pagadas.</span>
-                    </div>
+              <div className="bg-white rounded-2xl p-5 border border-emerald-200 shadow-sm">
+                <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider block mb-1">
+                  {t.metricConfirmed}
+                </span>
+                <span className="text-3xl font-serif font-bold text-emerald-900">
+                  {metrics.confirmedCount}
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <span className="text-xs font-semibold text-stone-600 uppercase tracking-wider block mb-1">
+                  {t.metricRejected}
+                </span>
+                <span className="text-3xl font-serif font-bold text-stone-800">
+                  {metrics.rejectedCount}
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm col-span-2 lg:col-span-1">
+                <span className="text-xs font-semibold text-red-700 uppercase tracking-wider block mb-1">
+                  {t.metricCancelled}
+                </span>
+                <span className="text-3xl font-serif font-bold text-red-900">
+                  {metrics.cancelledCount}
+                </span>
+              </div>
+            </div>
+
+            {/* Operational Stay Real Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
+                <span className="text-xs text-stone-500 block mb-1">{t.metricNightsBooked}</span>
+                <span className="text-2xl font-mono font-bold text-stone-900">
+                  {metrics.totalConfirmedNights}{' '}
+                  <span className="text-xs font-sans text-stone-500 font-normal">
+                    {language === 'en' ? 'nights' : 'noches'}
+                  </span>
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
+                <span className="text-xs text-stone-500 block mb-1">{t.metricOccupiedDays}</span>
+                <span className="text-2xl font-mono font-bold text-stone-900">
+                  {metrics.occupiedDaysCount}{' '}
+                  <span className="text-xs font-sans text-stone-500 font-normal">
+                    {language === 'en' ? 'days' : 'días'}
+                  </span>
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
+                <span className="text-xs text-stone-500 block mb-1">{t.metricAvgNights}</span>
+                <span className="text-2xl font-mono font-bold text-stone-900">
+                  {metrics.avgNights ? (
+                    <>
+                      {metrics.avgNights}{' '}
+                      <span className="text-xs font-sans text-stone-500 font-normal">
+                        {language === 'en' ? 'nights/res' : 'noches/res'}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm font-sans font-normal text-stone-400">
+                      {t.metricNoData}
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
+                <span className="text-xs text-stone-500 block mb-1">
+                  {language === 'ca' ? 'Comparativa mensual' : language === 'en' ? 'Monthly comparison' : 'Comparativa mensual'}
+                </span>
+                <div className="text-xs text-stone-700 space-y-1">
+                  <div className="flex justify-between">
+                    <span>{t.metricCurrentMonth}:</span>
+                    <span className="font-mono font-bold">{metrics.currentMonthCount}</span>
                   </div>
-
-                  {/* Calendar Distribution overview & upcoming events list */}
-                  <div className="bg-white p-6 border border-[#E5E1D8]">
-                    <h4 className="text-base font-serif italic text-stone-800 mb-6">Próximas Entradas (Orden Cronológico)</h4>
-                    
-                    <div className="space-y-4">
-                      {activeBookings
-                        .sort((a, b) => a.checkIn.localeCompare(b.checkIn))
-                        .slice(0, 4)
-                        .map(booking => {
-                          const isFamily = booking.status === 'Family Use';
-                          return (
-                            <div key={booking.id} className="flex items-center justify-between p-3.5 bg-[#F9F7F2] border border-[#E5E1D8] hover:bg-[#E5E1D8]/40 transition-colors">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-2 h-2 ${isFamily ? 'bg-[#D1C7B7]' : booking.status === 'Pending' ? 'bg-stone-400' : 'bg-[#2D2D2D]'}`} />
-                                <div>
-                                  <h5 className="text-xs font-semibold text-stone-800 leading-tight uppercase tracking-wider">{booking.guestName}</h5>
-                                  <p className="text-[10px] text-stone-500 font-mono mt-0.5">
-                                    {booking.checkIn} → {booking.checkOut}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                {isFamily ? (
-                                  <span className="text-[9px] uppercase tracking-wider font-semibold bg-[#D1C7B7] text-stone-800 px-2 py-0.5">Uso Familiar</span>
-                                ) : (
-                                  <div className="flex flex-col items-end">
-                                    <span className="text-xs font-mono font-bold text-stone-800">€{booking.totalPrice}</span>
-                                    <span className={`text-[9px] font-sans uppercase tracking-wider px-1.5 py-0.5 mt-0.5 ${booking.paymentStatus === 'Paid' ? 'bg-[#2D2D2D] text-white font-semibold' : 'bg-stone-200 text-stone-700'}`}>
-                                      {booking.paymentStatus === 'Paid' ? 'Cobrado' : 'Pendiente'}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
+                  <div className="flex justify-between text-stone-500">
+                    <span>{language === 'ca' ? 'Mes anterior' : language === 'en' ? 'Previous month' : 'Mes anterior'}:</span>
+                    <span className="font-mono">{metrics.prevMonthCount}</span>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* TAB 2: BOOKING CONTROL & CALENDAR BLOCKING */}
-            {activeTab === 'bookings' && (
-              <div className="space-y-8 font-sans">
-                {/* Header Action Row */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 border border-[#E5E1D8]">
-                  <div>
-                    <h4 className="text-base font-serif italic text-stone-800">Gestor de Fechas</h4>
-                    <p className="text-xs text-stone-500 font-light">Bloquea fechas para la familia o añade reservas manuales externas.</p>
+            {/* Upcoming Arrivals and Departures Panels */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Upcoming Arrivals */}
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-stone-100">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5 text-emerald-700" />
+                    <h3 className="font-serif text-lg font-bold text-stone-900">
+                      {t.metricUpcomingArrivals}
+                    </h3>
                   </div>
+                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800">
+                    {metrics.upcomingArrivals.length}
+                  </span>
+                </div>
+
+                {metrics.upcomingArrivals.length === 0 ? (
+                  <p className="text-xs text-stone-400 py-6 text-center">{t.metricNoData}</p>
+                ) : (
+                  <div className="space-y-3">
+                    {metrics.upcomingArrivals.slice(0, 5).map((b) => (
+                      <div
+                        key={b.id}
+                        onClick={() => setSelectedBookingId(b.id)}
+                        className="p-3.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200/70 flex items-center justify-between cursor-pointer transition-colors"
+                      >
+                        <div>
+                          <span className="text-xs font-mono font-bold text-emerald-800 block">
+                            {b.checkIn}
+                          </span>
+                          <span className="font-semibold text-stone-900 text-sm">{b.guestName}</span>
+                          <span className="text-xs text-stone-500 block">
+                            {b.guestsCount} {guestsWord} &bull; {b.id}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-stone-400" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Upcoming Departures */}
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-stone-100">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-amber-700" />
+                    <h3 className="font-serif text-lg font-bold text-stone-900">
+                      {t.metricUpcomingDepartures}
+                    </h3>
+                  </div>
+                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800">
+                    {metrics.upcomingDepartures.length}
+                  </span>
+                </div>
+
+                {metrics.upcomingDepartures.length === 0 ? (
+                  <p className="text-xs text-stone-400 py-6 text-center">{t.metricNoData}</p>
+                ) : (
+                  <div className="space-y-3">
+                    {metrics.upcomingDepartures.slice(0, 5).map((b) => (
+                      <div
+                        key={b.id}
+                        onClick={() => setSelectedBookingId(b.id)}
+                        className="p-3.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200/70 flex items-center justify-between cursor-pointer transition-colors"
+                      >
+                        <div>
+                          <span className="text-xs font-mono font-bold text-amber-800 block">
+                            {b.checkOut}
+                          </span>
+                          <span className="font-semibold text-stone-900 text-sm">{b.guestName}</span>
+                          <span className="text-xs text-stone-500 block">
+                            {b.guestsCount} {guestsWord} &bull; {b.id}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-stone-400" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: BOOKINGS LIST & MANAGEMENT */}
+        {activeTab === 'bookings' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 space-y-6">
+            {/* Filter and Action Header */}
+            <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+              {/* Search Bar */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t.btnSearchPlaceholder}
+                  className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                />
+                {searchQuery && (
                   <button
-                    onClick={() => setShowAddForm(!showAddForm)}
-                    className="flex items-center gap-2 bg-[#2D2D2D] hover:bg-stone-800 text-white text-xs font-sans uppercase tracking-widest py-2.5 px-4 rounded-none cursor-pointer transition-colors"
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-2.5 text-stone-400 hover:text-stone-600"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>{showAddForm ? 'Cancelar Registro' : 'Añadir Bloqueo / Reserva'}</span>
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filters & Export */}
+              <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                {/* Status selector */}
+                <div className="flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-stone-400" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-3 py-2 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 font-medium cursor-pointer"
+                  >
+                    <option value="all">{t.btnFilterAll}</option>
+                    <option value="new_request">{t.statusNewRequest}</option>
+                    <option value="pending_review">{t.statusPendingReview}</option>
+                    <option value="contacted">{t.statusContacted}</option>
+                    <option value="confirmed">{t.statusConfirmed}</option>
+                    <option value="rejected">{t.statusRejected}</option>
+                    <option value="cancelled">{t.statusCancelled}</option>
+                    <option value="completed">{t.statusCompleted}</option>
+                    <option value="archived">{t.statusArchived}</option>
+                    <option value="blocked">{t.statusBlocked}</option>
+                  </select>
+                </div>
+
+                {/* Date range filter */}
+                <input
+                  type="date"
+                  value={dateFilterFrom}
+                  onChange={(e) => setDateFilterFrom(e.target.value)}
+                  title="Desde"
+                  className="px-2.5 py-1.5 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 text-xs"
+                />
+                <span className="text-stone-400">&rarr;</span>
+                <input
+                  type="date"
+                  value={dateFilterTo}
+                  onChange={(e) => setDateFilterTo(e.target.value)}
+                  title="Hasta"
+                  className="px-2.5 py-1.5 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 text-xs"
+                />
+
+                {/* Sort selector */}
+                <div className="flex items-center gap-1">
+                  <select
+                    value={sortBy}
+                    onChange={(e: any) => setSortBy(e.target.value)}
+                    className="px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 font-medium cursor-pointer"
+                  >
+                    <option value="createdAt">
+                      {language === 'ca' ? 'Data de creació' : language === 'en' ? 'Creation date' : 'Fecha de solicitud'}
+                    </option>
+                    <option value="checkIn">
+                      {language === 'ca' ? 'Data d’arribada' : language === 'en' ? 'Check-in date' : 'Fecha de llegada'}
+                    </option>
+                    <option value="status">
+                      {language === 'ca' ? 'Estat' : language === 'en' ? 'Status' : 'Estado'}
+                    </option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    className="p-2 rounded-lg border border-stone-300 bg-stone-50 hover:bg-stone-100 text-stone-600 cursor-pointer"
+                    title={sortOrder === 'asc' ? 'Ascendente' : 'Descendente'}
+                  >
+                    <ArrowUpDown className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {/* Add Manual Form Section */}
-                <AnimatePresence>
-                  {showAddForm && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="bg-white border border-[#E5E1D8] p-6 rounded-none overflow-hidden"
-                    >
-                      <h4 className="text-base font-serif italic mb-4 text-stone-800">Añadir Reserva Manual o Bloqueo</h4>
-                      
-                      <form onSubmit={handleAddManualBooking} className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Tipo de Registro</label>
-                          <select
-                            value={newType}
-                            onChange={(e) => setNewType(e.target.value as any)}
-                            className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
-                          >
-                            <option value="guest">Reserva de Huésped Externa</option>
-                            <option value="family">Uso Familiar (Bloquear)</option>
-                          </select>
-                        </div>
+                {/* Export CSV Button */}
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="px-3 py-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-medium flex items-center gap-1.5 transition-colors border border-stone-300 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-stone-600" />
+                  <span>{t.btnExportCsv}</span>
+                </button>
+              </div>
+            </div>
 
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">
-                            {newType === 'family' ? 'Miembro Familiar / Motivo' : 'Nombre del Huésped'}
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={newGuestName}
-                            onChange={(e) => setNewGuestName(e.target.value)}
-                            placeholder={newType === 'family' ? 'Ej. Jordi Tarongers' : 'Ej. Clara Müller'}
-                            className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
-                          />
-                        </div>
+            {/* Bookings Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-stone-200 bg-stone-50 text-[11px] font-serif uppercase tracking-wider text-stone-500">
+                    <th className="py-3 px-3">ID</th>
+                    <th className="py-3 px-3">{t.calFullName}</th>
+                    <th className="py-3 px-3">
+                      {language === 'ca' ? 'Dates' : language === 'en' ? 'Dates' : 'Fechas'}
+                    </th>
+                    <th className="py-3 px-3">{t.calNumGuests}</th>
+                    <th className="py-3 px-3">
+                      {language === 'ca' ? 'Estat' : language === 'en' ? 'Status' : 'Estado'}
+                    </th>
+                    <th className="py-3 px-3">
+                      {language === 'ca' ? 'Contacte' : language === 'en' ? 'Contact' : 'Contacto'}
+                    </th>
+                    <th className="py-3 px-3 text-right">
+                      {language === 'ca' ? 'Accions' : language === 'en' ? 'Actions' : 'Acciones'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 text-xs">
+                  {filteredBookings.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-stone-400">
+                        {t.metricNoData}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredBookings.map((b) => (
+                      <tr
+                        key={b.id}
+                        className="hover:bg-stone-50/80 transition-colors group cursor-pointer"
+                        onClick={() => setSelectedBookingId(b.id)}
+                      >
+                        <td className="py-3.5 px-3 font-mono text-stone-500 font-bold text-[11px]">
+                          {b.id}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <div className="font-semibold text-stone-900">{b.guestName}</div>
+                          {b.internalNotes && b.internalNotes.length > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium mt-0.5">
+                              <FileText className="w-2.5 h-2.5" />
+                              {b.internalNotes.length} {t.notesTitle.toLowerCase()}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-stone-700">
+                          <div>{b.checkIn} &rarr; {b.checkOut}</div>
+                        </td>
+                        <td className="py-3.5 px-3 text-stone-600">
+                          {b.guestsCount > 0 ? `${b.guestsCount} ${guestsWord}` : '—'}
+                        </td>
+                        <td className="py-3.5 px-3">{renderStatusBadge(b.status)}</td>
+                        <td className="py-3.5 px-3" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-2">
+                            {b.guestEmail && (
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(b.guestEmail, `email-${b.id}`)}
+                                className="p-1 rounded hover:bg-stone-200 text-stone-600 cursor-pointer"
+                                title={`Copiar email: ${b.guestEmail}`}
+                              >
+                                {copiedItem === `email-${b.id}` ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Mail className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
 
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Nº Personas</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={settings.capacity}
-                            value={newGuestsCount}
-                            onChange={(e) => setNewGuestsCount(Number(e.target.value))}
-                            className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
-                          />
-                        </div>
+                            {b.guestPhone && (
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(b.guestPhone, `phone-${b.id}`)}
+                                className="p-1 rounded hover:bg-stone-200 text-stone-600 cursor-pointer"
+                                title={`Copiar teléfono: ${b.guestPhone}`}
+                              >
+                                {copiedItem === `phone-${b.id}` ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Phone className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
 
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Fecha de Entrada</label>
-                          <input
-                            type="date"
-                            required
-                            value={newCheckIn}
-                            onChange={(e) => setNewCheckIn(e.target.value)}
-                            className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                          />
-                        </div>
+                            {b.guestPhone && (
+                              <a
+                                href={`https://wa.me/${b.guestPhone.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-1 rounded hover:bg-emerald-50 text-emerald-700 cursor-pointer"
+                                title="Abrir WhatsApp"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
+                            {b.status === 'new_request' || b.status === 'pending_review' ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => onUpdateBookingStatus(b.id, 'confirmed')}
+                                  className="px-2 py-1 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold text-[11px] cursor-pointer"
+                                  title={t.btnConfirm}
+                                >
+                                  {t.btnConfirm}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => onUpdateBookingStatus(b.id, 'rejected')}
+                                  className="px-2 py-1 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer"
+                                  title={t.btnReject}
+                                >
+                                  {t.btnReject}
+                                </button>
+                              </>
+                            ) : null}
 
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Fecha de Salida</label>
-                          <input
-                            type="date"
-                            required
-                            value={newCheckOut}
-                            onChange={(e) => setNewCheckOut(e.target.value)}
-                            className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                          />
-                        </div>
-
-                        {newType === 'guest' ? (
-                          <div>
-                            <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Método de Pago Preferido</label>
-                            <select
-                              value={newMethod}
-                              onChange={(e) => setNewMethod(e.target.value as any)}
-                              className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBookingId(b.id)}
+                              className="px-2 py-1 rounded border border-stone-200 hover:bg-stone-100 text-stone-700 text-[11px] cursor-pointer"
                             >
-                              <option value="Bank Transfer">Transferencia Bancaria</option>
-                              <option value="Bizum">Bizum</option>
-                              <option value="Cash">Metálico / Efectivo</option>
-                              <option value="Card">Tarjeta</option>
-                            </select>
+                              {language === 'ca' ? 'Veure detalls' : language === 'en' ? 'View details' : 'Ver detalle'}
+                            </button>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-xs text-stone-700 bg-[#F9F7F2] px-4 py-2 border border-[#E5E1D8] h-10 mt-4 rounded-none">
-                            <span className="font-sans uppercase tracking-wider text-[9px] font-semibold">Las reservas familiares tienen coste cero (€0)</span>
-                          </div>
-                        )}
-
-                        {newType === 'guest' && (
-                          <div className="md:col-span-3">
-                            <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Precio Total Manual (Dejar en blanco para cálculo automático + limpieza)</label>
-                            <input
-                              type="number"
-                              value={newPriceManual}
-                              onChange={(e) => setNewPriceManual(e.target.value === '' ? '' : Number(e.target.value))}
-                              placeholder={`Cálculo automático: €${getCalculatedPrice(newCheckIn, newCheckOut, 'guest')}`}
-                              className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                            />
-                          </div>
-                        )}
-
-                        <div className="md:col-span-3">
-                          <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1">Notas Internas de la Familia</label>
-                          <textarea
-                             value={newNotes}
-                             onChange={(e) => setNewNotes(e.target.value)}
-                             placeholder="Ej. Les dejamos las llaves en la maceta..."
-                             rows={2}
-                             className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400 resize-none"
-                          />
-                        </div>
-
-                        {addError && (
-                          <div className="md:col-span-3 text-red-600 text-xs bg-red-50 p-3 rounded-none border border-red-100 flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            <span>{addError}</span>
-                          </div>
-                        )}
-
-                        <div className="md:col-span-3 flex justify-end gap-3 pt-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowAddForm(false)}
-                            className="px-4 py-2 text-[10px] font-sans uppercase tracking-widest hover:bg-stone-100 rounded-none border border-stone-300 cursor-pointer"
-                          >
-                            Cancelar
-                          </button>
-                          <button
-                            type="submit"
-                            className="bg-[#2D2D2D] hover:bg-stone-800 text-white px-5 py-2.5 rounded-none text-xs font-sans uppercase tracking-widest cursor-pointer transition-colors"
-                          >
-                            Registrar Fechas
-                          </button>
-                        </div>
-                      </form>
-                    </motion.div>
+                        </td>
+                      </tr>
+                    ))
                   )}
-                </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
-                {/* Booking List Table */}
-                <div className="bg-white border border-[#E5E1D8] rounded-none overflow-hidden">
-                  <div className="px-6 py-4 border-b border-[#E5E1D8] bg-[#F9F7F2] flex justify-between items-center">
-                    <h4 className="text-[10px] font-sans uppercase tracking-widest font-bold text-stone-500">Historial Completo de Estancias</h4>
-                    <span className="text-[10px] font-sans uppercase tracking-widest text-stone-400">Total: {bookings.length} registros</span>
+        {/* TAB 3: VISUAL CALENDAR */}
+        {activeTab === 'calendar' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 space-y-6">
+            {/* Calendar Month Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+              <div className="flex items-center gap-3">
+                <CalendarIcon className="w-6 h-6 text-primary-800" />
+                <h3 className="font-serif text-2xl font-bold text-stone-900">
+                  {calendarDate.toLocaleString(language === 'ca' ? 'ca-ES' : language === 'en' ? 'en-US' : 'es-ES', {
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))
+                  }
+                  className="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalendarDate(new Date())}
+                  className="px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-medium hover:bg-stone-50 cursor-pointer"
+                >
+                  {language === 'ca' ? 'Avui' : language === 'en' ? 'Today' : 'Hoy'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))
+                  }
+                  className="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Grid Days */}
+            {(() => {
+              const calYear = calendarDate.getFullYear();
+              const calMonth = calendarDate.getMonth();
+              const calDaysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+              const rawFirst = new Date(calYear, calMonth, 1).getDay();
+              const calFirstDay = rawFirst === 0 ? 6 : rawFirst - 1;
+
+              const weekLabels =
+                language === 'ca'
+                  ? ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte', 'Diumenge']
+                  : language === 'en'
+                  ? ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                  : ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+              return (
+                <div>
+                  <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-serif font-bold text-stone-500 uppercase tracking-wider">
+                    {weekLabels.map((wl, i) => (
+                      <div key={i} className="py-2">
+                        {wl.slice(0, 3)}
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-[#F9F7F2] text-stone-500 font-sans text-[10px] uppercase tracking-widest border-b border-[#E5E1D8]">
-                          <th className="py-4 px-6 font-semibold">ID / Solicitud</th>
-                          <th className="py-4 px-6 font-semibold">Huésped / Miembro</th>
-                          <th className="py-4 px-6 font-semibold">Entrada → Salida</th>
-                          <th className="py-4 px-6 font-semibold">Personas</th>
-                          <th className="py-4 px-6 text-right font-semibold">Precio Total</th>
-                          <th className="py-4 px-6 text-center font-semibold">Estado</th>
-                          <th className="py-4 px-6 text-right font-semibold">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-100 text-sm">
-                        {bookings
-                          .sort((a, b) => b.checkIn.localeCompare(a.checkIn)) // newest check-ins first
-                          .map(booking => {
-                            const isFamily = booking.status === 'Family Use';
-                            const isCancelled = booking.status === 'Cancelled';
-                            
-                            return (
-                              <tr key={booking.id} className={`hover:bg-[#F9F7F2]/30 transition-colors ${isCancelled ? 'opacity-50 line-through' : ''}`}>
-                                <td className="py-4 px-6 font-mono text-xs font-bold text-stone-500">
-                                  {booking.id}
-                                </td>
-                                <td className="py-4 px-6">
-                                  <div className="font-medium text-stone-800">{booking.guestName}</div>
-                                  <div className="text-xs text-stone-400 font-mono">{booking.guestEmail}</div>
-                                </td>
-                                <td className="py-4 px-6 font-mono text-xs text-stone-600">
-                                  {booking.checkIn} <span className="text-stone-300">|</span> {booking.checkOut}
-                                </td>
-                                <td className="py-4 px-6 font-mono text-stone-600">
-                                  {booking.guestsCount} {booking.guestsCount === 1 ? 'pers.' : 'pers.'}
-                                </td>
-                                <td className="py-4 px-6 text-right font-mono text-stone-800 font-medium">
-                                  {isFamily ? '—' : `€${booking.totalPrice}`}
-                                </td>
-                                <td className="py-4 px-6 text-center">
-                                  <span className={`inline-block text-[9px] font-sans uppercase tracking-wider font-semibold px-2.5 py-1 rounded-none ${
-                                    isFamily ? 'bg-[#E5E1D8] text-stone-700' :
-                                    booking.status === 'Confirmed' ? 'bg-[#2D2D2D] text-[#F9F7F2]' :
-                                    booking.status === 'Pending' ? 'bg-white border border-[#E5E1D8] text-stone-600' :
-                                    'bg-stone-100 text-stone-400'
-                                  }`}>
-                                    {isFamily ? 'Familia' : booking.status === 'Confirmed' ? 'Confirmado' : booking.status === 'Pending' ? 'Pendiente' : 'Cancelado'}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-6 text-right">
-                                  <div className="flex items-center justify-end gap-1.5">
-                                    {booking.status === 'Pending' && (
-                                      <button
-                                        onClick={() => onUpdateBookingStatus(booking.id, 'Confirmed')}
-                                        title="Aprobar Solicitud"
-                                        className="p-1.5 bg-[#F9F7F2] hover:bg-stone-100 text-stone-800 border border-[#E5E1D8] rounded-none cursor-pointer transition-colors"
-                                      >
-                                        <Check className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                    {!isCancelled && booking.status !== 'Family Use' && (
-                                      <button
-                                        onClick={() => onUpdateBookingStatus(booking.id, 'Cancelled')}
-                                        title="Cancelar Reserva"
-                                        className="p-1.5 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-stone-500 border border-[#E5E1D8] rounded-none cursor-pointer transition-colors"
-                                      >
-                                        <X className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                    {isCancelled && (
-                                      <button
-                                        onClick={() => onUpdateBookingStatus(booking.id, 'Pending')}
-                                        title="Restaurar a Pendiente"
-                                        className="p-1.5 bg-white hover:bg-stone-100 text-stone-700 border border-[#E5E1D8] rounded-none cursor-pointer transition-colors"
-                                      >
-                                        <RefreshCw className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                      </tbody>
-                    </table>
+                  <div className="grid grid-cols-7 gap-2">
+                    {Array.from({ length: calFirstDay }).map((_, i) => (
+                      <div key={`cal-pad-${i}`} className="min-h-[90px] rounded-xl bg-stone-50/50" />
+                    ))}
+
+                    {Array.from({ length: calDaysInMonth }).map((_, i) => {
+                      const dayNum = i + 1;
+                      const dStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(
+                        dayNum
+                      ).padStart(2, '0')}`;
+
+                      // Find all bookings covering this day
+                      const dayBookings = bookings.filter((b) => {
+                        if (b.status === 'cancelled' || b.status === 'rejected' || b.status === 'archived') {
+                          return false;
+                        }
+                        return dStr >= b.checkIn && dStr < b.checkOut;
+                      });
+
+                      const isToday = dStr === todayStr;
+
+                      return (
+                        <div
+                          key={`cal-day-${dayNum}`}
+                          className={`min-h-[90px] p-2 rounded-xl border transition-all flex flex-col justify-between ${
+                            isToday
+                              ? 'border-primary-800 bg-primary-50/30'
+                              : 'border-stone-200 bg-white hover:border-stone-400'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span
+                              className={`text-xs font-mono font-bold ${
+                                isToday ? 'text-primary-900 bg-primary-200 px-1.5 rounded' : 'text-stone-700'
+                              }`}
+                            >
+                              {dayNum}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            {dayBookings.map((b) => {
+                              let badgeClass = 'bg-stone-100 text-stone-800 border-stone-300';
+                              if (b.status === 'confirmed') {
+                                badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+                              } else if (b.status === 'new_request') {
+                                badgeClass = 'bg-blue-100 text-blue-900 border-blue-300';
+                              } else if (b.status === 'pending_review' || b.status === 'contacted') {
+                                badgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
+                              } else if (b.status === 'blocked') {
+                                badgeClass = 'bg-stone-200 text-stone-700 border-stone-400';
+                              }
+
+                              return (
+                                <button
+                                  key={b.id}
+                                  type="button"
+                                  onClick={() => setSelectedBookingId(b.id)}
+                                  className={`w-full text-left p-1 rounded-md text-[10px] font-medium border truncate block cursor-pointer ${badgeClass}`}
+                                  title={`${b.guestName} (${b.status})`}
+                                >
+                                  {b.guestName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
+              );
+            })()}
+
+            {/* Calendar Legend */}
+            <div className="pt-4 border-t border-stone-200 flex flex-wrap items-center gap-4 text-xs text-stone-600">
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded bg-emerald-100 border border-emerald-400" />
+                <span>{t.statusConfirmed}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded bg-blue-100 border border-blue-400" />
+                <span>{t.statusNewRequest}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded bg-amber-100 border border-amber-400" />
+                <span>{t.statusPendingReview}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded bg-stone-200 border border-stone-400" />
+                <span>{t.statusBlocked}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: SETTINGS */}
+        {activeTab === 'settings' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 sm:p-8 max-w-2xl mx-auto space-y-6">
+            <div className="border-b border-stone-200 pb-4">
+              <h3 className="font-serif text-xl font-bold text-stone-900">
+                {t.dashTabSettings}
+              </h3>
+              <p className="text-xs text-stone-500 mt-1">
+                {language === 'ca'
+                  ? 'Ajusta les regles generals del refugi i les dades de contacte de la família.'
+                  : language === 'en'
+                  ? 'Adjust general accommodation rules and family contact info.'
+                  : 'Ajusta las reglas generales del alojamiento y los datos de contacto familiar.'}
+              </p>
+            </div>
+
+            {settingsSavedMessage && (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{language === 'ca' ? 'Configuració guardada correctament.' : language === 'en' ? 'Settings saved successfully.' : 'Configuración guardada correctamente.'}</span>
               </div>
             )}
 
-            {/* TAB 3: PAYMENTS LEDGER */}
-            {activeTab === 'payments' && (
-              <div className="space-y-8 font-sans">
-                {/* Statistics banner */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white border border-[#E5E1D8] p-5 rounded-none flex items-center justify-between">
-                    <div>
-                      <span className="text-stone-500 text-[10px] font-sans font-bold uppercase tracking-widest">Total Cobrado Real</span>
-                      <h4 className="text-2xl font-mono font-medium text-stone-800 mt-1">€{totalRevenue}</h4>
-                    </div>
-                    <Check className="w-5 h-5 text-stone-700" />
-                  </div>
- 
-                  <div className="bg-white border border-[#E5E1D8] p-5 rounded-none flex items-center justify-between">
-                    <div>
-                      <span className="text-stone-500 text-[10px] font-sans font-bold uppercase tracking-widest">Esperando Confirmación</span>
-                      <h4 className="text-2xl font-mono font-medium text-stone-800 mt-1">€{pendingPaymentsAmount}</h4>
-                    </div>
-                    <CreditCard className="w-5 h-5 text-stone-700" />
-                  </div>
- 
-                  <div className="bg-white border border-[#E5E1D8] p-5 rounded-none flex items-center justify-between">
-                    <div>
-                      <span className="text-stone-500 text-[10px] font-sans font-bold uppercase tracking-widest">Huéspedes Totales</span>
-                      <h4 className="text-2xl font-mono font-medium text-stone-800 mt-1">
-                        {bookings.filter(b => b.status === 'Confirmed').length} Reservas
-                      </h4>
-                    </div>
-                    <Users className="w-5 h-5 text-stone-700" />
-                  </div>
+            <form onSubmit={handleSaveSettings} className="space-y-4 text-xs sm:text-sm">
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  {language === 'ca' ? 'Capacitat màxima d’hostes' : language === 'en' ? 'Maximum guest capacity' : 'Capacidad máxima de huéspedes'}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={tempCapacity}
+                  onChange={(e) => setTempCapacity(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  {language === 'ca' ? 'Estada mínima (nits)' : language === 'en' ? 'Minimum stay (nights)' : 'Estancia mínima (noches)'}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={14}
+                  value={tempMinNights}
+                  onChange={(e) => setTempMinNights(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    {language === 'ca' ? 'Hora d’entrada (Check-in)' : language === 'en' ? 'Check-in time' : 'Hora de entrada (Check-in)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={tempCheckInTime}
+                    onChange={(e) => setTempCheckInTime(e.target.value)}
+                    placeholder="16:00"
+                    className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  />
                 </div>
- 
-                {/* Ledger section */}
-                <div className="bg-white border border-[#E5E1D8] rounded-none overflow-hidden">
-                  <div className="px-6 py-4 border-b border-[#E5E1D8] bg-[#F9F7F2] flex justify-between items-center">
-                    <h4 className="text-[10px] font-sans uppercase tracking-widest font-bold text-stone-500">Libro de Pagos de Alquiler en Tiempo Real</h4>
-                    <span className="text-[9px] font-sans uppercase tracking-wider text-stone-700 bg-[#E5E1D8] px-2.5 py-1 rounded-none font-semibold">Bizum / Transferencias</span>
-                  </div>
- 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-[#F9F7F2] text-stone-500 font-sans text-[10px] uppercase tracking-widest border-b border-[#E5E1D8]">
-                          <th className="py-4 px-6 font-semibold">ID Pago</th>
-                          <th className="py-4 px-6 font-semibold">Huésped</th>
-                          <th className="py-4 px-6 font-semibold">Fecha Registro</th>
-                          <th className="py-4 px-6 font-semibold">Vía / Método</th>
-                          <th className="py-4 px-6 text-right font-semibold">Cantidad</th>
-                          <th className="py-4 px-6 text-center font-semibold">Estado Cobro</th>
-                          <th className="py-4 px-6 text-right font-semibold">Confirmar Recepción</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-100 text-sm">
-                        {payments
-                          .sort((a, b) => b.date.localeCompare(a.date))
-                          .map(payment => {
-                            return (
-                              <tr key={payment.id} className="hover:bg-[#F9F7F2]/30 transition-colors">
-                                <td className="py-4 px-6 font-mono text-xs font-bold text-stone-500">
-                                  {payment.id}
-                                </td>
-                                <td className="py-4 px-6">
-                                  <div className="font-medium text-stone-800">{payment.guestName}</div>
-                                  <div className="text-[11px] text-stone-400 font-mono">Ref Reserva: {payment.bookingId}</div>
-                                </td>
-                                <td className="py-4 px-6 font-mono text-xs text-stone-600">
-                                  {payment.date}
-                                </td>
-                                <td className="py-4 px-6 font-mono text-xs">
-                                  <span className="px-2 py-1 bg-[#F9F7F2] border border-[#E5E1D8] rounded-none text-stone-600 text-[10px]">
-                                    {payment.method}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-6 text-right font-mono font-bold text-stone-800">
-                                  €{payment.amount}
-                                </td>
-                                <td className="py-4 px-6 text-center">
-                                  <span className={`inline-block text-[9px] font-sans uppercase tracking-wider font-semibold px-2.5 py-1 rounded-none ${
-                                    payment.status === 'Paid' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' :
-                                    'bg-amber-50 text-amber-800 border border-amber-100 animate-pulse'
-                                  }`}>
-                                    {payment.status === 'Paid' ? 'Recibido ✓' : 'Esperando Bizum'}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-6 text-right">
-                                  {payment.status === 'Pending' ? (
-                                    <button
-                                      onClick={() => onUpdatePaymentStatus(payment.bookingId, 'Paid', payment.method)}
-                                      className="bg-[#2D2D2D] hover:bg-stone-800 text-white text-[10px] font-sans uppercase tracking-widest px-3 py-1.5 rounded-none cursor-pointer transition-colors"
-                                    >
-                                      Confirmar Pago
-                                    </button>
-                                  ) : (
-                                    <span className="text-xs font-mono text-stone-400">Completado ✓</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                      </tbody>
-                    </table>
-                  </div>
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    {language === 'ca' ? 'Hora de sortida (Check-out)' : language === 'en' ? 'Check-out time' : 'Hora de salida (Check-out)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={tempCheckOutTime}
+                    onChange={(e) => setTempCheckOutTime(e.target.value)}
+                    placeholder="11:00"
+                    className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  />
                 </div>
               </div>
-            )}
 
-            {/* TAB 4: CONFIGURATION & PRICES */}
-            {activeTab === 'settings' && (
-              <div className="bg-white border border-[#E5E1D8] p-8 max-w-2xl mx-auto rounded-none font-sans">
-                <div className="flex items-center gap-3 mb-6 border-b border-[#E5E1D8] pb-4">
-                  <Sliders className="w-4 h-4 text-stone-800" />
-                  <h4 className="text-base font-serif italic text-stone-800">Tarifas y Ajustes de Casa Tarongers</h4>
-                </div>
- 
-                <form onSubmit={handleSaveSettings} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1.5 font-sans">Precio Base por Noche (€)</label>
-                      <input
-                        type="number"
-                        required
-                        value={baseRate}
-                        onChange={(e) => setBaseRate(Number(e.target.value))}
-                        className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                      />
-                      <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-wider font-sans">Temporada normal (Septiembre - Junio)</p>
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  {language === 'ca' ? 'Email de contacte familiar' : language === 'en' ? 'Family contact email' : 'Email de contacto familiar'}
+                </label>
+                <input
+                  type="email"
+                  value={tempContactEmail}
+                  onChange={(e) => setTempContactEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  {language === 'ca' ? 'Telèfon de contacte familiar' : language === 'en' ? 'Family contact phone' : 'Teléfono de contacto familiar'}
+                </label>
+                <input
+                  type="text"
+                  value={tempContactPhone}
+                  onChange={(e) => setTempContactPhone(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 px-4 rounded-xl bg-primary-800 text-white font-semibold text-sm hover:bg-primary-900 transition-colors cursor-pointer"
+              >
+                {language === 'ca' ? 'Guardar configuració' : language === 'en' ? 'Save settings' : 'Guardar configuración'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* MODAL: DETAIL & NOTES & AUDIT DRAWER */}
+        <AnimatePresence>
+          {activeSelectedBooking && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="bg-white rounded-2xl shadow-2xl border border-stone-200 max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto"
+              >
+                {/* Drawer Header */}
+                <div className="flex items-start justify-between border-b border-stone-200 pb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-xs font-bold text-stone-500">
+                        {activeSelectedBooking.id}
+                      </span>
+                      {renderStatusBadge(activeSelectedBooking.status)}
                     </div>
- 
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1.5 font-sans">Precio Temporada Alta (€)</label>
-                      <input
-                        type="number"
-                        required
-                        value={highSeasonRate}
-                        onChange={(e) => setHighSeasonRate(Number(e.target.value))}
-                        className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                      />
-                      <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-wider font-sans">Temporada alta (Julio - Agosto)</p>
-                    </div>
- 
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1.5 font-sans">Gastos de Limpieza (€)</label>
-                      <input
-                        type="number"
-                        required
-                        value={cleaningFee}
-                        onChange={(e) => setCleaningFee(Number(e.target.value))}
-                        className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                      />
-                      <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-wider font-sans">Pago único por estancia</p>
-                    </div>
- 
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-stone-500 mb-1.5 font-sans">Capacidad Máxima (Personas)</label>
-                      <input
-                        type="number"
-                        required
-                        value={capacity}
-                        onChange={(e) => setCapacity(Number(e.target.value))}
-                        className="w-full bg-[#F9F7F2] border border-[#E5E1D8] rounded-none px-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-stone-400"
-                      />
-                    </div>
+                    <h3 className="font-serif text-2xl font-bold text-stone-900">
+                      {activeSelectedBooking.guestName}
+                    </h3>
                   </div>
- 
-                  <div className="bg-[#F9F7F2] p-4 border border-[#E5E1D8] rounded-none flex items-start gap-3">
-                    <AlertCircle className="w-4 h-4 text-stone-700 shrink-0 mt-0.5" />
-                    <p className="text-xs text-stone-600 leading-relaxed font-sans font-light">
-                      <strong>Nota sobre la temporada alta:</strong> El sistema aplica de forma inteligente la tarifa de temporada alta (<strong>€{highSeasonRate}/noche</strong>) a los días reservados correspondientes a los meses de Julio y Agosto de 2026 de forma automática en el formulario de cara al huésped.
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBookingId(null)}
+                    className="p-2 rounded-lg hover:bg-stone-100 text-stone-500 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Stay Info & Contact */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-stone-50 p-4 rounded-xl border border-stone-200/70">
+                  <div>
+                    <span className="text-stone-400 block mb-0.5">
+                      {language === 'ca' ? 'Dates' : language === 'en' ? 'Dates' : 'Fechas'}
+                    </span>
+                    <span className="font-mono font-bold text-stone-800 text-sm">
+                      {activeSelectedBooking.checkIn} &rarr; {activeSelectedBooking.checkOut}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-stone-400 block mb-0.5">{t.calNumGuests}</span>
+                    <span className="font-bold text-stone-800 text-sm">
+                      {activeSelectedBooking.guestsCount > 0
+                        ? `${activeSelectedBooking.guestsCount} ${guestsWord}`
+                        : '—'}
+                    </span>
+                  </div>
+
+                  {activeSelectedBooking.guestEmail && (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-stone-400 block mb-0.5">Email</span>
+                        <a
+                          href={`mailto:${activeSelectedBooking.guestEmail}`}
+                          className="font-mono text-primary-800 hover:underline"
+                        >
+                          {activeSelectedBooking.guestEmail}
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(activeSelectedBooking.guestEmail, 'modal-email')}
+                        className="p-1 rounded hover:bg-stone-200 text-stone-500 cursor-pointer"
+                        title="Copiar"
+                      >
+                        {copiedItem === 'modal-email' ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {activeSelectedBooking.guestPhone && (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-stone-400 block mb-0.5">{t.calPhone}</span>
+                        <a
+                          href={`tel:${activeSelectedBooking.guestPhone}`}
+                          className="font-mono text-primary-800 hover:underline"
+                        >
+                          {activeSelectedBooking.guestPhone}
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(activeSelectedBooking.guestPhone, 'modal-phone')}
+                        className="p-1 rounded hover:bg-stone-200 text-stone-500 cursor-pointer"
+                        title="Copiar"
+                      >
+                        {copiedItem === 'modal-phone' ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Guest Message */}
+                {activeSelectedBooking.notes && (
+                  <div>
+                    <h4 className="font-semibold text-xs text-stone-700 mb-1.5 flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-stone-500" />
+                      <span>{t.calMessageLabel}</span>
+                    </h4>
+                    <p className="text-xs text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-200 whitespace-pre-wrap">
+                      {activeSelectedBooking.notes}
                     </p>
                   </div>
- 
-                  <div className="flex justify-end pt-4 border-t border-[#E5E1D8]">
+                )}
+
+                {/* Status Action Buttons */}
+                <div className="border-t border-b border-stone-200 py-4 space-y-2">
+                  <span className="text-xs font-semibold text-stone-700 block">
+                    {language === 'ca' ? 'Canviar estat de la sol·licitud' : language === 'en' ? 'Update request status' : 'Cambiar estado de la solicitud'}:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'confirmed')}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-semibold text-xs hover:bg-emerald-800 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {t.btnConfirm}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'contacted')}
+                      className="px-3 py-1.5 rounded-lg bg-purple-100 text-purple-800 font-semibold text-xs hover:bg-purple-200 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <PhoneCall className="w-3.5 h-3.5" />
+                      {language === 'ca' ? 'Marcar contactada' : language === 'en' ? 'Mark contacted' : 'Marcar contactada'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'rejected')}
+                      className="px-3 py-1.5 rounded-lg bg-stone-200 text-stone-800 font-semibold text-xs hover:bg-stone-300 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      {t.btnReject}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'cancelled')}
+                      className="px-3 py-1.5 rounded-lg bg-red-100 text-red-800 font-semibold text-xs hover:bg-red-200 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      {t.btnCancel}
+                    </button>
+
+                    {activeSelectedBooking.status !== 'archived' ? (
+                      <button
+                        type="button"
+                        onClick={() => onArchiveBooking(activeSelectedBooking.id)}
+                        className="px-3 py-1.5 rounded-lg border border-stone-300 text-stone-600 text-xs hover:bg-stone-100 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Archive className="w-3.5 h-3.5" />
+                        {t.btnArchive}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onRestoreBooking(activeSelectedBooking.id)}
+                        className="px-3 py-1.5 rounded-lg border border-stone-300 text-stone-600 text-xs hover:bg-stone-100 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        {t.btnRestore}
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBookingToDelete(activeSelectedBooking);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs hover:bg-red-100 flex items-center gap-1.5 ml-auto cursor-pointer"
+                      title={t.btnDelete}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      {t.btnDelete}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Internal Notes Section */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-xs text-stone-800 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-stone-600" />
+                    <span>{t.notesTitle}</span>
+                  </h4>
+
+                  {/* Add note form */}
+                  <form onSubmit={handleCreateNote} className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newNoteAuthor}
+                        onChange={(e) => setNewNoteAuthor(e.target.value)}
+                        placeholder={language === 'ca' ? 'Autor' : language === 'en' ? 'Author' : 'Autor'}
+                        className="w-1/3 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 bg-stone-50"
+                      />
+                      <input
+                        type="text"
+                        value={newNoteText}
+                        onChange={(e) => setNewNoteText(e.target.value)}
+                        placeholder={t.notesPlaceholder}
+                        className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 bg-stone-50"
+                      />
+                    </div>
                     <button
                       type="submit"
-                      className="bg-[#2D2D2D] hover:bg-stone-800 text-white text-xs font-sans uppercase tracking-widest py-3 px-6 rounded-none cursor-pointer transition-colors"
+                      disabled={!newNoteText.trim()}
+                      className="px-3 py-1.5 rounded-lg bg-stone-800 text-white font-medium text-xs hover:bg-stone-900 disabled:opacity-50 cursor-pointer"
                     >
-                      Guardar Tarifas
+                      {t.notesAddBtn}
+                    </button>
+                  </form>
+
+                  {/* Notes list */}
+                  <div className="space-y-2 max-h-36 overflow-y-auto">
+                    {(activeSelectedBooking.internalNotes || []).length === 0 ? (
+                      <p className="text-xs text-stone-400 italic">No hay notas internas todavía.</p>
+                    ) : (
+                      activeSelectedBooking.internalNotes?.map((n) => (
+                        <div key={n.id} className="p-2.5 rounded-lg bg-stone-50 border border-stone-200 text-xs">
+                          <div className="flex justify-between text-[11px] text-stone-500 mb-1">
+                            <span className="font-semibold text-stone-700">{n.author}</span>
+                            <span>{new Date(n.createdAt).toLocaleString(language === 'ca' ? 'ca-ES' : 'es-ES')}</span>
+                          </div>
+                          <p className="text-stone-800">{n.text}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Chronological Activity History */}
+                <div className="border-t border-stone-200 pt-4 space-y-3">
+                  <h4 className="font-semibold text-xs text-stone-800 flex items-center gap-1.5">
+                    <History className="w-4 h-4 text-stone-600" />
+                    <span>{t.historyTitle}</span>
+                  </h4>
+
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {(activeSelectedBooking.history || []).map((act) => (
+                      <div key={act.id} className="text-xs flex items-start gap-2 text-stone-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5 shrink-0" />
+                        <div>
+                          <span className="font-medium text-stone-800">{act.description}</span>
+                          <span className="text-[10px] text-stone-400 block">
+                            {new Date(act.timestamp).toLocaleString(language === 'ca' ? 'ca-ES' : 'es-ES')} &bull;{' '}
+                            {act.actor}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: MANUAL DATE BLOCK */}
+        <AnimatePresence>
+          {showBlockModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="bg-white rounded-2xl shadow-xl border border-stone-200 max-w-md w-full p-6 space-y-4"
+              >
+                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-stone-700" />
+                    <h3 className="font-serif text-lg font-bold text-stone-900">
+                      {t.btnBlockDates}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowBlockModal(false)}
+                    className="p-1 rounded hover:bg-stone-100 text-stone-400 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {blockError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>{blockError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleBlockSubmit} className="space-y-3 text-xs">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-semibold text-stone-700 mb-1">Check-in *</label>
+                      <input
+                        type="date"
+                        value={blockCheckIn}
+                        onChange={(e) => setBlockCheckIn(e.target.value)}
+                        required
+                        className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-stone-700 mb-1">Check-out *</label>
+                      <input
+                        type="date"
+                        value={blockCheckOut}
+                        onChange={(e) => setBlockCheckOut(e.target.value)}
+                        required
+                        className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-700 mb-1">
+                      {t.blockReasonPlaceholder}
+                    </label>
+                    <input
+                      type="text"
+                      value={blockReason}
+                      onChange={(e) => setBlockReason(e.target.value)}
+                      placeholder="Ex: Manteniment, ús familiar..."
+                      className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-700 mb-1">
+                      {language === 'ca' ? 'Responsable' : language === 'en' ? 'Created by' : 'Responsable'}
+                    </label>
+                    <input
+                      type="text"
+                      value={blockAuthor}
+                      onChange={(e) => setBlockAuthor(e.target.value)}
+                      placeholder="Familia"
+                      className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowBlockModal(false)}
+                      className="flex-1 py-2 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer"
+                    >
+                      {language === 'ca' ? 'Cancel·lar' : language === 'en' ? 'Cancel' : 'Cancelar'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2 px-3 rounded-lg bg-primary-800 text-white font-medium hover:bg-primary-900 cursor-pointer"
+                    >
+                      {t.btnBlockDates}
                     </button>
                   </div>
                 </form>
-              </div>
-            )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* TAB 5: PRESERVATION FUND & REFORMS LOG */}
-            {activeTab === 'preservation' && (
-              <div className="bg-white border border-[#E5E1D8] p-8 rounded-none space-y-6 text-left">
+        {/* MODAL: EXPLICIT DELETE CONFIRMATION */}
+        <AnimatePresence>
+          {bookingToDelete && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="bg-white rounded-2xl shadow-xl border border-stone-200 max-w-sm w-full p-6 text-center space-y-4"
+              >
+                <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+
                 <div>
-                  <h3 className="text-xl font-serif font-bold text-stone-900 mb-2">Fondo de Conservación & Mantenimiento</h3>
-                  <p className="text-stone-600 text-xs leading-relaxed max-w-3xl font-light">
-                    Área familiar para planificar las mejoras físicas de Casa Tarongers. Los ingresos obtenidos de las reservas de invitados (recaudados a través del fondo de mantenimiento) se asignan íntegramente a estas reformas estructurales, de jardinería y sostenibilidad.
+                  <h3 className="font-serif text-lg font-bold text-stone-900">
+                    {t.deleteConfirmTitle}
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                    {t.deleteConfirmDesc}
+                  </p>
+                  <p className="text-xs font-mono font-bold text-stone-800 mt-2">
+                    {bookingToDelete.guestName} &bull; {bookingToDelete.id}
                   </p>
                 </div>
 
-                <div className="h-[1px] bg-stone-200" />
-
-                <div className="space-y-4">
-                  <h4 className="text-xs uppercase tracking-wider font-bold text-stone-850 font-sans">
-                    Planificación y Estado de Reformas
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Reform 1 */}
-                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-semibold text-stone-800">Restauración de Contraventanas</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Madera original de 1967 restaurada a mano y barnizada.</p>
-                      </div>
-                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 rounded border border-emerald-100 shrink-0">
-                        Completado
-                      </span>
-                    </div>
-
-                    {/* Reform 2 */}
-                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-semibold text-stone-800">Placas Solares (Energía Sostenible)</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Instalación solar fotovoltaica para autoconsumo familiar.</p>
-                      </div>
-                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-amber-50 text-amber-700 rounded border border-amber-100 animate-pulse shrink-0">
-                        En Curso
-                      </span>
-                    </div>
-
-                    {/* Reform 3 */}
-                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-semibold text-stone-800">Pista de Tenis y Parque Infantil</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Repavimentación de resina y zona de juegos infantil.</p>
-                      </div>
-                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-stone-100 text-stone-500 rounded border border-stone-200 shrink-0">
-                        Planificado
-                      </span>
-                    </div>
-
-                    {/* Reform 4 */}
-                    <div className="p-4 border border-stone-200 bg-[#F9F7F2] flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-semibold text-stone-800">Motor y Depuradora Ecológica</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5 font-light">Cambio de bomba por una de bajo consumo y filtrado salino.</p>
-                      </div>
-                      <span className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 rounded border border-emerald-100 shrink-0">
-                        Completado
-                      </span>
-                    </div>
-                  </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setBookingToDelete(null)}
+                    className="flex-1 py-2 px-3 rounded-lg border border-stone-300 text-stone-700 text-xs font-medium hover:bg-stone-50 cursor-pointer"
+                  >
+                    {language === 'ca' ? 'Cancel·lar' : language === 'en' ? 'Cancel' : 'Cancelar'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDeleteBooking(bookingToDelete.id);
+                      setBookingToDelete(null);
+                      if (selectedBookingId === bookingToDelete.id) {
+                        setSelectedBookingId(null);
+                      }
+                    }}
+                    className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer"
+                  >
+                    {t.btnDelete}
+                  </button>
                 </div>
-
-                <div className="pt-6 border-t border-[#E5E1D8] flex items-center justify-between text-xs text-stone-500 font-sans">
-                  <span>Balance Acumulado para Reformas: <strong>€{totalRevenue.toLocaleString()}</strong></span>
-                  <span>Presupuesto Estimado Pendiente: <strong>€4,500</strong></span>
-                </div>
-              </div>
-            )}
-          </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
- 
       </div>
     </section>
   );

@@ -1,6 +1,32 @@
-export type BookingStatus = 'Pending' | 'Confirmed' | 'Family Use' | 'Cancelled';
-export type PaymentStatus = 'Paid' | 'Pending' | 'Refunded';
-export type PaymentMethod = 'Bank Transfer' | 'Cash' | 'Bizum' | 'Card' | 'Apple Pay' | 'Google Pay' | 'None';
+export type BookingStatus = 
+  | 'new_request'       // Nueva solicitud
+  | 'pending_review'    // Pendiente de revisión
+  | 'contacted'         // Contactada
+  | 'confirmed'         // Confirmada
+  | 'rejected'          // Rechazada
+  | 'cancelled'         // Cancelada
+  | 'completed'         // Finalizada
+  | 'archived'          // Archivada
+  | 'blocked';          // Bloqueo manual de fechas por la familia
+
+export interface BookingActivity {
+  id: string;
+  timestamp: string;
+  action: string;
+  actor?: string;
+  author?: string;
+  description?: string;
+  details?: string;
+}
+
+export interface BookingNote {
+  id: string;
+  createdAt?: string;
+  timestamp?: string;
+  author: string;
+  text?: string;
+  content?: string;
+}
 
 export interface Booking {
   id: string;
@@ -10,30 +36,25 @@ export interface Booking {
   checkIn: string; // YYYY-MM-DD
   checkOut: string; // YYYY-MM-DD
   guestsCount: number;
-  totalPrice: number;
-  status: BookingStatus;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
   notes?: string;
+  message?: string;
+  privacyAccepted: boolean;
+  termsAccepted: boolean;
+  status: BookingStatus;
+  isManualBlock?: boolean;
+  blockReason?: string;
+  internalNotes?: BookingNote[];
+  history: BookingActivity[];
   createdAt: string;
-}
-
-export interface Payment {
-  id: string;
-  bookingId: string;
-  guestName: string;
-  amount: number;
-  method: PaymentMethod;
-  status: PaymentStatus;
-  date: string;
+  updatedAt?: string;
 }
 
 export interface PropertySettings {
-  basePrice: number;
-  cleaningFee: number;
-  highSeasonPrice: number;
-  minDays: number;
   capacity: number;
+  minDays: number;
+  minStayNights?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
   contactEmail: string;
   contactPhone: string;
 }
@@ -47,7 +68,7 @@ export interface Amenity {
 
 export interface GalleryImage {
   src: string;
-  category: 'panoramic' | 'interiors' | 'exteriors';
+  category: 'exteriors' | 'interiors' | 'panoramic';
   alt: {
     ca: string;
     es: string;
