@@ -183,10 +183,10 @@ export default function OwnerDashboard({
     } else {
       setPinError(
         language === 'ca'
-          ? 'PIN incorrecte. El PIN familiar és 1967.'
+          ? 'PIN incorrecte.'
           : language === 'en'
-          ? 'Incorrect PIN. The family PIN is 1967.'
-          : 'PIN incorrecto. El PIN familiar es 1967.'
+          ? 'Incorrect PIN.'
+          : 'PIN incorrecto.'
       );
     }
   };
@@ -535,10 +535,10 @@ export default function OwnerDashboard({
           </h2>
           <p className="text-stone-500 text-xs sm:text-sm mb-6 leading-relaxed">
             {language === 'ca'
-              ? 'Introdueix el PIN de seguretat familiar (1967) per accedir al panell de gestió.'
+              ? 'Introdueix el PIN de seguretat familiar per accedir al panell de gestió.'
               : language === 'en'
-              ? 'Enter the family security PIN (1967) to access the management dashboard.'
-              : 'Introduce el PIN de seguridad familiar (1967) para acceder al panel de gestión.'}
+              ? 'Enter the family security PIN to access the management dashboard.'
+              : 'Introduce el PIN de seguridad familiar para acceder al panel de gestión.'}
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -621,13 +621,13 @@ export default function OwnerDashboard({
               <button
                 type="button"
                 onClick={() => {
-                  setPin('1967');
+                  setPin((prev) => prev.slice(0, -1));
                   if (pinError) setPinError('');
                 }}
-                className="py-2.5 rounded-xl bg-accent-terracotta/10 hover:bg-accent-terracotta/20 text-accent-terracotta font-mono font-bold text-xs active:scale-95 transition-all cursor-pointer"
-                title="Introducir PIN 1967"
+                className="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-mono font-bold text-base active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+                title={language === 'ca' ? 'Retrocedir' : language === 'en' ? 'Backspace' : 'Retroceder'}
               >
-                1967
+                ⌫
               </button>
             </div>
 
@@ -637,13 +637,13 @@ export default function OwnerDashboard({
             >
               <Lock className="w-4 h-4" />
               <span>
-                {language === 'ca' ? 'Entrar al Panell (PIN 1967)' : language === 'en' ? 'Access Dashboard (PIN 1967)' : 'Entrar al Panel (PIN 1967)'}
+                {language === 'ca' ? 'Entrar al Panell' : language === 'en' ? 'Access Dashboard' : 'Entrar al Panel'}
               </span>
             </button>
           </form>
 
           <p className="text-[11px] text-stone-400 mt-6 font-mono">
-            {language === 'ca' ? 'Ús exclusiu de la família Civit · PIN: 1967' : language === 'en' ? 'Civit family exclusive access · PIN: 1967' : 'Uso exclusivo de la familia Civit · PIN: 1967'}
+            {language === 'ca' ? 'Ús exclusiu de la família Civit' : language === 'en' ? 'Civit family exclusive access' : 'Uso exclusivo de la familia Civit'}
           </p>
         </div>
       </section>
