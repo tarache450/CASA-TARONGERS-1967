@@ -17,7 +17,10 @@ import {
   User,
   MessageSquare,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Info,
+  CalendarCheck,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -289,6 +292,14 @@ export default function BookingCalendar({
     }
   };
 
+  // Clear date selection helper
+  const handleClearDates = () => {
+    setCheckIn('');
+    setCheckOut('');
+    setPendingOverlapWarning(false);
+    setFormError('');
+  };
+
   // Form submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -420,101 +431,129 @@ export default function BookingCalendar({
   const guestsWord = language === 'en' ? 'guests' : 'huéspedes';
 
   return (
-    <section id="reservas" className="py-20 bg-stone-100/70 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="reservas" className="py-16 sm:py-24 bg-[#FAFAF5] relative overflow-hidden">
+      {/* Subtle organic background gradients */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary-800/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-terracotta/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-800/10 text-primary-900 text-xs font-serif font-bold tracking-widest uppercase mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1C2E15]/10 text-[#1C2E15] text-xs font-serif font-bold tracking-widest uppercase mb-4 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-accent-terracotta" />
             <span>{t.bookNow}</span>
           </div>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-stone-900 font-bold tracking-tight">
             {t.calTitle}
           </h2>
-          <p className="mt-4 text-stone-600 font-sans text-base sm:text-lg leading-relaxed">
+          <p className="mt-4 text-stone-600 font-sans text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
             {t.calSelectDates}
           </p>
         </div>
 
         {/* Success Confirmation Modal / Screen */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {submittedBookingId ? (
             <motion.div
+              key="success-screen"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              className="bg-white rounded-2xl shadow-xl border border-stone-200/80 p-8 sm:p-12 max-w-2xl mx-auto text-center"
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-3xl shadow-xl border border-stone-200/90 p-6 sm:p-12 max-w-2xl mx-auto text-center"
             >
-              <div className="w-16 h-16 bg-primary-800/10 text-primary-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-9 h-9 text-primary-800" />
+              <div className="w-20 h-20 bg-[#1C2E15]/10 text-[#1C2E15] rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-[#1C2E15]/5">
+                <CheckCircle2 className="w-11 h-11 text-[#1C2E15]" />
               </div>
 
-              <div className="inline-block px-3 py-1 bg-stone-100 rounded-md font-mono text-xs font-bold text-stone-700 mb-2">
-                {t.calSuccessIdLabel}: {submittedBookingId}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-stone-100 rounded-full font-mono text-xs font-bold text-stone-800 mb-4 border border-stone-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{t.calSuccessIdLabel}:</span>
+                <span className="text-[#1C2E15]">{submittedBookingId}</span>
               </div>
 
               <h3 className="font-serif text-2xl sm:text-3xl text-stone-900 font-bold mb-3">
                 {t.calSuccessTitle}
               </h3>
 
-              <p className="text-stone-600 text-sm sm:text-base leading-relaxed mb-8">
+              <p className="text-stone-600 text-sm sm:text-base leading-relaxed mb-8 max-w-md mx-auto">
                 {t.calSuccessDesc}
               </p>
 
-              {/* Summary card */}
-              <div className="bg-stone-50 border border-stone-200 rounded-xl p-5 text-left mb-8 space-y-2.5 text-sm">
-                <div className="flex justify-between border-b border-stone-200 pb-2">
-                  <span className="text-stone-500">{t.calFullName}:</span>
-                  <span className="font-semibold text-stone-800">{guestName}</span>
+              {/* Summary Receipt Card */}
+              <div className="bg-[#FAFAF5] border border-stone-200/90 rounded-2xl p-5 sm:p-6 text-left mb-8 space-y-3 text-xs sm:text-sm shadow-2xs">
+                <div className="flex justify-between items-center border-b border-stone-200/80 pb-2.5">
+                  <span className="text-stone-500 font-medium">{t.calFullName}</span>
+                  <span className="font-semibold text-stone-900">{guestName}</span>
                 </div>
-                <div className="flex justify-between border-b border-stone-200 pb-2">
-                  <span className="text-stone-500">{t.calCheckIn} - {t.calCheckOut}:</span>
-                  <span className="font-semibold text-stone-800 font-mono">
+                <div className="flex justify-between items-center border-b border-stone-200/80 pb-2.5">
+                  <span className="text-stone-500 font-medium">{t.calCheckIn} &rarr; {t.calCheckOut}</span>
+                  <span className="font-mono font-bold text-stone-900 text-xs sm:text-sm">
                     {checkIn} &rarr; {checkOut} ({nights} {language === 'en' ? 'nights' : 'noches'})
                   </span>
                 </div>
-                <div className="flex justify-between border-b border-stone-200 pb-2">
-                  <span className="text-stone-500">{t.calNumGuests}:</span>
-                  <span className="font-semibold text-stone-800">{guestsCount} {guestsWord}</span>
+                <div className="flex justify-between items-center border-b border-stone-200/80 pb-2.5">
+                  <span className="text-stone-500 font-medium">{t.calNumGuests}</span>
+                  <span className="font-semibold text-stone-900">{guestsCount} {guestsWord}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-500">{t.locContactTitle}:</span>
-                  <span className="font-mono text-stone-700 text-xs">{guestEmail} &bull; {guestPhone}</span>
+                <div className="flex justify-between items-center pt-0.5">
+                  <span className="text-stone-500 font-medium">{t.locContactTitle}</span>
+                  <span className="font-mono text-stone-700 text-xs text-right">
+                    {guestEmail} &bull; {guestPhone}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  type="button"
-                  onClick={handleResetForm}
-                  className="px-6 py-3 bg-primary-800 text-white rounded-lg font-sans font-medium text-sm hover:bg-primary-900 transition-colors shadow-sm flex items-center justify-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>{t.calSuccessNewBtn}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleResetForm}
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#1C2E15] text-white rounded-xl font-sans font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mx-auto cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>{t.calSuccessNewBtn}</span>
+              </button>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Left Column: Interactive Calendar & House Rules */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+              {/* Left Column: Interactive Calendar & House Information */}
               <div className="lg:col-span-7 space-y-6">
                 {/* Calendar Card */}
-                <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 sm:p-7">
+                <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 transition-all hover:shadow-md">
                   {/* Calendar Top Navigation */}
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-stone-200">
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-stone-200/80">
                     <div className="flex items-center gap-3">
-                      <CalendarIcon className="w-5 h-5 text-primary-800" />
-                      <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-900">
-                        {monthNames[month]} <span className="text-stone-500 font-normal">{year}</span>
-                      </h3>
+                      <div className="w-10 h-10 rounded-xl bg-[#1C2E15]/10 text-[#1C2E15] flex items-center justify-center">
+                        <CalendarIcon className="w-5 h-5 text-[#1C2E15]" />
+                      </div>
+                      <div>
+                        <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-900">
+                          {monthNames[month]} <span className="text-stone-500 font-normal">{year}</span>
+                        </h3>
+                        <p className="text-[11px] text-stone-500 hidden sm:block">
+                          {checkIn && checkOut
+                            ? `${checkIn} → ${checkOut} (${nights} ${language === 'en' ? 'nights' : 'noches'})`
+                            : checkIn
+                            ? (language === 'ca' ? 'Selecciona la data de sortida' : language === 'en' ? 'Select departure date' : 'Selecciona la fecha de salida')
+                            : (language === 'ca' ? 'Fes clic sobre el dia d’arribada' : language === 'en' ? 'Click on arrival date' : 'Haz clic sobre el día de llegada')}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      {(checkIn || checkOut) && (
+                        <button
+                          type="button"
+                          onClick={handleClearDates}
+                          className="mr-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+                        >
+                          {language === 'ca' ? 'Netejar' : language === 'en' ? 'Clear' : 'Limpiar'}
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={handlePrevMonth}
                         aria-label="Previous Month"
-                        className="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition-colors cursor-pointer"
+                        className="p-2.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer active:scale-95"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
@@ -522,7 +561,7 @@ export default function BookingCalendar({
                         type="button"
                         onClick={handleNextMonth}
                         aria-label="Next Month"
-                        className="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition-colors cursor-pointer"
+                        className="p-2.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer active:scale-95"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -532,17 +571,17 @@ export default function BookingCalendar({
                   {/* Weekday headers */}
                   <div className="grid grid-cols-7 gap-1 text-center font-serif text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wider">
                     {weekDayLabels.map((day, idx) => (
-                      <div key={idx} className="py-1.5">
+                      <div key={idx} className="py-1">
                         {day}
                       </div>
                     ))}
                   </div>
 
-                  {/* Day cells */}
-                  <div className="grid grid-cols-7 gap-1.5">
+                  {/* Day cells grid */}
+                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                     {/* Empty padding days */}
                     {Array.from({ length: firstDay }).map((_, i) => (
-                      <div key={`empty-${i}`} className="h-10 sm:h-12 rounded-lg" />
+                      <div key={`empty-${i}`} className="min-h-[42px] sm:min-h-[48px] rounded-xl" />
                     ))}
 
                     {/* Active Month Days */}
@@ -557,27 +596,30 @@ export default function BookingCalendar({
                         checkIn && checkOut && dateStr > checkIn && dateStr < checkOut;
 
                       // Styles determination
-                      let btnStyle = 'bg-white text-stone-800 hover:bg-stone-100 border border-stone-200/70';
+                      let btnStyle = 'bg-white text-stone-800 hover:bg-stone-100/90 border border-stone-200/80 shadow-2xs';
                       let statusDot = null;
 
                       if (status === 'past') {
-                        btnStyle = 'bg-stone-50 text-stone-300 border-dashed border-stone-200 cursor-not-allowed';
+                        btnStyle = 'bg-stone-50 text-stone-300 border-dashed border-stone-200/70 cursor-not-allowed';
                       } else if (status === 'confirmed') {
-                        btnStyle = 'bg-emerald-50 text-emerald-900 border-emerald-300 line-through opacity-80 cursor-not-allowed';
+                        btnStyle = 'bg-emerald-50/70 text-emerald-900 border-emerald-300/80 line-through opacity-85 cursor-not-allowed';
                         statusDot = <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mx-auto mt-0.5" />;
                       } else if (status === 'blocked') {
-                        btnStyle = 'bg-stone-200/80 text-stone-500 border-stone-300 line-through cursor-not-allowed';
+                        btnStyle = 'bg-stone-200/70 text-stone-500 border-stone-300 line-through cursor-not-allowed';
                         statusDot = <span className="w-1.5 h-1.5 rounded-full bg-stone-500 mx-auto mt-0.5" />;
                       } else if (status === 'pending') {
-                        btnStyle = 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100';
+                        btnStyle = 'bg-amber-50/80 text-amber-900 border-amber-300 hover:bg-amber-100';
                         statusDot = <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mx-auto mt-0.5" />;
                       }
 
-                      if (isSelectedCheckIn || isSelectedCheckOut) {
-                        btnStyle = 'bg-primary-800 text-white font-bold shadow-md border-primary-900';
+                      if (isSelectedCheckIn) {
+                        btnStyle = 'bg-[#1C2E15] text-white font-bold shadow-md border-[#1C2E15] rounded-l-xl';
+                        statusDot = null;
+                      } else if (isSelectedCheckOut) {
+                        btnStyle = 'bg-[#1C2E15] text-white font-bold shadow-md border-[#1C2E15] rounded-r-xl';
                         statusDot = null;
                       } else if (isInSelectedRange) {
-                        btnStyle = 'bg-primary-100 text-primary-900 font-semibold border-primary-200';
+                        btnStyle = 'bg-[#1C2E15]/10 text-[#1C2E15] font-semibold border-[#1C2E15]/20 rounded-none';
                         statusDot = null;
                       }
 
@@ -587,7 +629,7 @@ export default function BookingCalendar({
                           type="button"
                           onClick={() => handleDayClick(dayNum)}
                           disabled={status === 'past' || status === 'confirmed' || status === 'blocked'}
-                          className={`h-10 sm:h-12 rounded-lg flex flex-col items-center justify-center text-xs sm:text-sm transition-all relative ${btnStyle}`}
+                          className={`min-h-[42px] sm:min-h-[48px] rounded-xl flex flex-col items-center justify-center text-xs sm:text-sm transition-all relative cursor-pointer active:scale-95 disabled:active:scale-100 ${btnStyle}`}
                           title={
                             status === 'confirmed'
                               ? t.statusConfirmed
@@ -606,37 +648,37 @@ export default function BookingCalendar({
                   </div>
 
                   {/* Calendar Legend */}
-                  <div className="mt-6 pt-4 border-t border-stone-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-stone-600">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-md bg-white border border-stone-300" />
-                      <span>{t.legendAvailable}</span>
+                  <div className="mt-6 pt-5 border-t border-stone-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs text-stone-600">
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-stone-50">
+                      <span className="w-3 h-3 rounded-md bg-white border border-stone-300 shrink-0" />
+                      <span className="truncate">{t.legendAvailable}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-md bg-amber-100 border border-amber-300" />
-                      <span>{t.legendPending}</span>
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-stone-50">
+                      <span className="w-3 h-3 rounded-md bg-amber-100 border border-amber-400 shrink-0" />
+                      <span className="truncate">{t.legendPending}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-md bg-emerald-100 border border-emerald-400" />
-                      <span>{t.statusConfirmed}</span>
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-stone-50">
+                      <span className="w-3 h-3 rounded-md bg-emerald-100 border border-emerald-500 shrink-0" />
+                      <span className="truncate">{t.statusConfirmed}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-md bg-stone-200 border border-stone-300" />
-                      <span>{t.legendBlocked}</span>
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-stone-50">
+                      <span className="w-3 h-3 rounded-md bg-stone-200 border border-stone-400 shrink-0" />
+                      <span className="truncate">{t.legendBlocked}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Direct Booking Philosophy Card */}
-                <div className="bg-primary-900/5 rounded-2xl border border-primary-900/15 p-6 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary-800 text-white shrink-0 mt-0.5">
-                      <Home className="w-5 h-5" />
+                {/* Direct Stay Philosophy Card */}
+                <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 space-y-4 shadow-2xs">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-accent-terracotta/10 text-accent-terracotta flex items-center justify-center shrink-0 mt-0.5">
+                      <Home className="w-5 h-5 text-accent-terracotta" />
                     </div>
                     <div>
                       <h4 className="font-serif text-lg font-bold text-stone-900">
                         {language === 'ca' ? 'Reserva directa sense comissions' : language === 'en' ? 'Direct booking without commissions' : 'Reserva directa sin comisiones'}
                       </h4>
-                      <p className="text-sm text-stone-600 mt-1 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
                         {language === 'ca'
                           ? 'Les estades a Casa Tarongers es gestionen de manera familiar i personalitzada. Quan rebem la teva sol·licitud, revisem els detalls i ens posem en contacte amb tu en menys de 24 hores per confirmar la reserva.'
                           : language === 'en'
@@ -646,18 +688,18 @@ export default function BookingCalendar({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-primary-900/10 text-xs text-stone-700">
-                    <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-stone-100 text-xs text-stone-700">
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-stone-50">
                       <Users className="w-4 h-4 text-accent-terracotta shrink-0" />
-                      <span>{language === 'ca' ? 'Capacitat: fins a 10 persones' : language === 'en' ? 'Capacity: up to 10 guests' : 'Capacidad: hasta 10 personas'}</span>
+                      <span>{language === 'ca' ? 'Fins a 10 persones' : language === 'en' ? 'Up to 10 guests' : 'Hasta 10 personas'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-stone-50">
                       <Clock className="w-4 h-4 text-accent-terracotta shrink-0" />
-                      <span>{language === 'ca' ? 'Entrada 16:00 · Sortida 11:00' : language === 'en' ? 'Check-in 16:00 · Out 11:00' : 'Entrada 16:00 · Salida 11:00'}</span>
+                      <span>{language === 'ca' ? 'Entrada 16h · Sortida 11h' : language === 'en' ? 'Check-in 16h · Out 11h' : 'Entrada 16h · Salida 11h'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4 text-accent-terracotta shrink-0" />
-                      <span>{language === 'ca' ? 'Estada mínima: 2 nits' : language === 'en' ? 'Min. stay: 2 nights' : 'Estancia mínima: 2 noches'}</span>
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-stone-50">
+                      <CalendarCheck className="w-4 h-4 text-accent-terracotta shrink-0" />
+                      <span>{language === 'ca' ? 'Mínim: 2 nits' : language === 'en' ? 'Min: 2 nights' : 'Mínimo: 2 noches'}</span>
                     </div>
                   </div>
                 </div>
@@ -665,19 +707,23 @@ export default function BookingCalendar({
 
               {/* Right Column: Reservation Request Form */}
               <div className="lg:col-span-5">
-                <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 sm:p-8">
-                  <div className="border-b border-stone-200 pb-4 mb-6">
-                    <h3 className="font-serif text-xl font-bold text-stone-900">
+                <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-6 sm:p-8 transition-all hover:shadow-md">
+                  <div className="border-b border-stone-200/80 pb-4 mb-6">
+                    <div className="flex items-center gap-2 mb-1 text-xs font-serif font-bold text-accent-terracotta uppercase tracking-wider">
+                      <Info className="w-3.5 h-3.5" />
+                      <span>{language === 'ca' ? 'Petició d’estada' : language === 'en' ? 'Stay request' : 'Petición de estancia'}</span>
+                    </div>
+                    <h3 className="font-serif text-2xl font-bold text-stone-900">
                       {t.calFormTitle}
                     </h3>
                     <p className="text-xs text-stone-500 mt-1">
-                      {t.calSelectDates}
+                      {language === 'ca' ? 'Sense intermediaris ni pagaments per avançat' : language === 'en' ? 'No intermediaries or upfront payment' : 'Sin intermediarios ni pagos por adelantado'}
                     </p>
                   </div>
 
-                  {/* Collisions / Overlap Warnings */}
+                  {/* Overlap / Collision Warnings */}
                   {pendingOverlapWarning && (
-                    <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+                    <div className="mb-5 p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-3">
                       <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold block mb-0.5">
@@ -694,7 +740,7 @@ export default function BookingCalendar({
 
                   {/* Form Error Banner */}
                   {formError && (
-                    <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-3">
+                    <div className="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-3">
                       <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold block mb-0.5">{language === 'ca' ? 'Atenció' : language === 'en' ? 'Notice' : 'Atención'}</span>
@@ -707,7 +753,7 @@ export default function BookingCalendar({
                     {/* Date Pickers */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                           {t.calCheckIn} *
                         </label>
                         <input
@@ -716,11 +762,11 @@ export default function BookingCalendar({
                           value={checkIn}
                           onChange={handleCheckInChange}
                           required
-                          className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                          className="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-sans"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                           {t.calCheckOut} *
                         </label>
                         <input
@@ -729,35 +775,41 @@ export default function BookingCalendar({
                           value={checkOut}
                           onChange={handleCheckOutChange}
                           required
-                          className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                          className="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-sans"
                         />
                       </div>
                     </div>
 
-                    {/* Nights indicator */}
+                    {/* Nights indicator pill */}
                     {nights > 0 && (
-                      <div className="px-3 py-1.5 bg-stone-100 rounded-lg text-xs font-medium text-stone-700 flex items-center justify-between">
-                        <span>{language === 'ca' ? 'Durada de l’estada:' : language === 'en' ? 'Duration of stay:' : 'Duración de la estancia:'}</span>
-                        <span className="font-mono font-bold text-primary-900">
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="px-4 py-2 bg-[#1C2E15]/5 border border-[#1C2E15]/10 rounded-xl text-xs font-medium text-stone-800 flex items-center justify-between"
+                      >
+                        <span className="text-stone-600">
+                          {language === 'ca' ? 'Durada de l’estada:' : language === 'en' ? 'Duration of stay:' : 'Duración de la estancia:'}
+                        </span>
+                        <span className="font-mono font-bold text-[#1C2E15]">
                           {nights} {language === 'en' ? 'nights' : 'noches'}
                         </span>
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Guests Count */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1 flex items-center justify-between">
+                      <label className="block text-xs font-semibold text-stone-700 mb-1.5 flex items-center justify-between">
                         <span>{t.calNumGuests} *</span>
                         <span className="text-stone-400 font-normal text-[11px]">
                           ({language === 'ca' ? `Màx. ${settings.capacity} persones` : language === 'en' ? `Max ${settings.capacity} guests` : `Máx. ${settings.capacity} personas`})
                         </span>
                       </label>
                       <div className="relative">
-                        <Users className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <Users className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                         <select
                           value={guestsCount}
                           onChange={(e) => setGuestsCount(Number(e.target.value))}
-                          className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50 cursor-pointer"
+                          className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 cursor-pointer transition-all font-sans"
                         >
                           {Array.from({ length: settings.capacity }).map((_, idx) => (
                             <option key={idx + 1} value={idx + 1}>
@@ -770,102 +822,102 @@ export default function BookingCalendar({
 
                     {/* Guest Name */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                         {t.calFullName} *
                       </label>
                       <div className="relative">
-                        <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                         <input
                           type="text"
                           required
                           value={guestName}
                           onChange={(e) => setGuestName(e.target.value)}
                           placeholder={language === 'ca' ? 'Ex. Carles Rovira' : language === 'en' ? 'e.g. John Doe' : 'Ej. Carlos Rovira'}
-                          className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                          className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-sans"
                         />
                       </div>
                     </div>
 
                     {/* Guest Email */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                         {t.calEmail} *
                       </label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                         <input
                           type="email"
                           required
                           value={guestEmail}
                           onChange={(e) => setGuestEmail(e.target.value)}
                           placeholder="tu-email@ejemplo.com"
-                          className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                          className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-sans"
                         />
                       </div>
                     </div>
 
                     {/* Guest Phone */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                         {t.calPhone} *
                       </label>
                       <div className="relative">
-                        <Phone className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                         <input
                           type="tel"
                           required
                           value={guestPhone}
                           onChange={(e) => setGuestPhone(e.target.value)}
                           placeholder="+34 600 000 000"
-                          className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                          className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-sans"
                         />
                       </div>
                     </div>
 
                     {/* Special Notes */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                         {t.calMessageLabel}
                       </label>
                       <div className="relative">
-                        <MessageSquare className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <MessageSquare className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                         <textarea
                           rows={3}
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
                           placeholder={t.calMessagePlaceholder}
-                          className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                          className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-sans resize-none"
                         />
                       </div>
                     </div>
 
-                    {/* Legal Checkboxes */}
-                    <div className="space-y-2 pt-2 border-t border-stone-100">
-                      <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-600">
+                    {/* Legal Checkboxes with clear touch padding */}
+                    <div className="space-y-2.5 pt-2 border-t border-stone-100">
+                      <label className="flex items-start gap-3 cursor-pointer text-xs text-stone-600 p-1 rounded-lg hover:bg-stone-50 transition-colors">
                         <input
                           type="checkbox"
                           checked={privacyAccepted}
                           onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                          className="mt-0.5 rounded border-stone-300 text-primary-800 focus:ring-primary-800 cursor-pointer"
+                          className="mt-0.5 w-4 h-4 rounded border-stone-300 text-[#1C2E15] focus:ring-[#1C2E15] cursor-pointer"
                         />
-                        <span>
+                        <span className="leading-snug">
                           {t.calPrivacyConsent}{' '}
-                          <a href="#about" className="underline hover:text-stone-900">
+                          <a href="#about" className="underline hover:text-stone-900 font-medium">
                             {t.footPrivacy}
                           </a>
                         </span>
                       </label>
 
-                      <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-600">
+                      <label className="flex items-start gap-3 cursor-pointer text-xs text-stone-600 p-1 rounded-lg hover:bg-stone-50 transition-colors">
                         <input
                           type="checkbox"
                           checked={termsAccepted}
                           onChange={(e) => setTermsAccepted(e.target.checked)}
-                          className="mt-0.5 rounded border-stone-300 text-primary-800 focus:ring-primary-800 cursor-pointer"
+                          className="mt-0.5 w-4 h-4 rounded border-stone-300 text-[#1C2E15] focus:ring-[#1C2E15] cursor-pointer"
                         />
-                        <span>
+                        <span className="leading-snug">
                           {t.calTermsConsent}{' '}
-                          <a href="#about" className="underline hover:text-stone-900">
+                          <a href="#about" className="underline hover:text-stone-900 font-medium">
                             {t.footTerms}
                           </a>
                         </span>
@@ -876,7 +928,7 @@ export default function BookingCalendar({
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full mt-4 py-3 px-4 rounded-xl bg-primary-800 text-white font-sans font-semibold text-sm sm:text-base hover:bg-primary-900 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full mt-4 py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-sans font-semibold text-sm sm:text-base hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
                     >
                       {isSubmitting ? (
                         <>
@@ -885,7 +937,7 @@ export default function BookingCalendar({
                         </>
                       ) : (
                         <>
-                          <ShieldCheck className="w-4 h-4 text-accent-terracotta" />
+                          <ShieldCheck className="w-5 h-5 text-accent-terracotta" />
                           <span>{t.calSubmitRequestBtn}</span>
                         </>
                       )}

@@ -31,7 +31,9 @@ import {
   AlertCircle,
   X,
   Check,
-  Trash2
+  Trash2,
+  User,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -385,63 +387,63 @@ export default function OwnerDashboard({
     switch (status) {
       case 'new_request':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100/80 text-blue-900 border border-blue-200">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
             {t.statusNewRequest}
           </span>
         );
       case 'pending_review':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            <Clock className="w-3 h-3 text-amber-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100/80 text-amber-900 border border-amber-300">
+            <Clock className="w-3 h-3 text-amber-700" />
             {t.statusPendingReview}
           </span>
         );
       case 'contacted':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
-            <PhoneCall className="w-3 h-3 text-purple-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-100/80 text-purple-900 border border-purple-200">
+            <PhoneCall className="w-3 h-3 text-purple-700" />
             {t.statusContacted}
           </span>
         );
       case 'confirmed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100/80 text-emerald-900 border border-emerald-300">
+            <CheckCircle2 className="w-3 h-3 text-emerald-700" />
             {t.statusConfirmed}
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-stone-200/70 text-stone-700 border border-stone-300">
             <XCircle className="w-3 h-3 text-stone-500" />
             {t.statusRejected}
           </span>
         );
       case 'cancelled':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
-            <XCircle className="w-3 h-3 text-red-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-100/80 text-red-900 border border-red-200">
+            <XCircle className="w-3 h-3 text-red-700" />
             {t.statusCancelled}
           </span>
         );
       case 'completed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 border border-teal-200">
-            <Check className="w-3 h-3 text-teal-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal-100/80 text-teal-900 border border-teal-200">
+            <Check className="w-3 h-3 text-teal-700" />
             {t.statusCompleted}
           </span>
         );
       case 'archived':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-200 text-stone-700 border border-stone-300">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-stone-200 text-stone-700 border border-stone-300">
             <Archive className="w-3 h-3 text-stone-600" />
             {t.statusArchived}
           </span>
         );
       case 'blocked':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-200 text-stone-800 border border-stone-300">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-stone-200 text-stone-800 border border-stone-400">
             <Lock className="w-3 h-3 text-stone-600" />
             {t.statusBlocked}
           </span>
@@ -454,16 +456,22 @@ export default function OwnerDashboard({
   // Unauthenticated screen (PIN Protection)
   if (!isAuthenticated) {
     return (
-      <section className="min-h-[80vh] flex items-center justify-center py-16 px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-stone-200/80 p-8 sm:p-10 text-center">
-          <div className="w-14 h-14 bg-primary-800/10 text-primary-800 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-7 h-7 text-primary-800" />
+      <section className="min-h-[85vh] flex items-center justify-center py-16 px-4 bg-[#FAFAF5] relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#1C2E15]/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-200/90 p-8 sm:p-10 text-center relative z-10">
+          <div className="w-16 h-16 bg-[#1C2E15]/10 text-[#1C2E15] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xs ring-8 ring-[#1C2E15]/5">
+            <Lock className="w-8 h-8 text-[#1C2E15]" />
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-[11px] font-mono mb-3">
+            <span>Casa Tarongers 1967</span>
           </div>
 
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mb-2">
             {t.familyDashboard}
           </h2>
-          <p className="text-stone-500 text-sm mb-6 leading-relaxed">
+          <p className="text-stone-500 text-xs sm:text-sm mb-6 leading-relaxed">
             {t.dashPinDesc}
           </p>
 
@@ -475,20 +483,20 @@ export default function OwnerDashboard({
                   maxLength={6}
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  placeholder="PIN"
-                  className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                  placeholder="••••"
+                  className="w-full text-center tracking-[0.6em] text-2xl font-mono py-3.5 px-4 rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 top-3.5 text-stone-400 hover:text-stone-600"
+                  className="absolute right-3.5 top-4 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
                 >
                   {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
 
               {pinError && (
-                <p className="text-red-600 text-xs mt-2 flex items-center justify-center gap-1">
+                <p className="text-red-600 text-xs mt-2.5 flex items-center justify-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5" />
                   {pinError}
                 </p>
@@ -497,14 +505,14 @@ export default function OwnerDashboard({
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-xl bg-primary-800 text-white font-sans font-semibold text-sm hover:bg-primary-900 transition-all shadow-md cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-sans font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-[0.99]"
             >
               {t.dashPinBtn}
             </button>
           </form>
 
           <p className="text-[11px] text-stone-400 mt-6 font-mono">
-            Casa Tarongers 1967 &bull; {language === 'ca' ? 'Ús exclusiu familiar' : language === 'en' ? 'Family exclusive use' : 'Uso exclusivo familiar'}
+            {language === 'ca' ? 'Ús exclusiu de la família Civit' : language === 'en' ? 'Civit family exclusive access' : 'Uso exclusivo de la familia Civit'}
           </p>
         </div>
       </section>
@@ -512,12 +520,12 @@ export default function OwnerDashboard({
   }
 
   return (
-    <section className="min-h-screen py-10 bg-stone-100/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <section className="min-h-screen py-8 sm:py-12 bg-[#FAFAF5]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         {/* Top Header Bar */}
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-primary-800/10 text-primary-900 text-xs font-serif font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C2E15]/10 text-[#1C2E15] text-xs font-serif font-bold uppercase tracking-wider mb-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-accent-terracotta" />
               <span>{language === 'ca' ? 'Gestió Familiar' : language === 'en' ? 'Family Management' : 'Gestión Familiar'}</span>
             </div>
@@ -526,11 +534,11 @@ export default function OwnerDashboard({
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setShowBlockModal(true)}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-sans font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 border border-stone-300 cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-sans font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 border border-stone-300 cursor-pointer active:scale-95"
             >
               <Lock className="w-4 h-4 text-stone-600" />
               <span>{t.btnBlockDates}</span>
@@ -546,14 +554,14 @@ export default function OwnerDashboard({
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-stone-200 bg-white rounded-xl p-1.5 shadow-sm overflow-x-auto gap-1">
+        {/* Tab Navigation Pill Bar */}
+        <div className="flex border border-stone-200/90 bg-white rounded-2xl p-1.5 shadow-2xs overflow-x-auto gap-1">
           <button
             type="button"
             onClick={() => setActiveTab('dashboard')}
-            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-primary-800 text-white shadow-sm'
+                ? 'bg-[#1C2E15] text-white shadow-sm'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
           >
@@ -569,15 +577,15 @@ export default function OwnerDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('bookings')}
-            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'bookings'
-                ? 'bg-primary-800 text-white shadow-sm'
+                ? 'bg-[#1C2E15] text-white shadow-sm'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
           >
             <FileText className="w-4 h-4" />
             <span>{t.dashTabBookings}</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-stone-200 text-stone-700">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-700">
               {metrics.totalCount}
             </span>
           </button>
@@ -585,9 +593,9 @@ export default function OwnerDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('calendar')}
-            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'calendar'
-                ? 'bg-primary-800 text-white shadow-sm'
+                ? 'bg-[#1C2E15] text-white shadow-sm'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
           >
@@ -598,9 +606,9 @@ export default function OwnerDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === 'settings'
-                ? 'bg-primary-800 text-white shadow-sm'
+                ? 'bg-[#1C2E15] text-white shadow-sm'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
           >
@@ -611,40 +619,42 @@ export default function OwnerDashboard({
 
         {/* TAB 1: DASHBOARD (Metrics strictly from real data) */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Primary Status Metric Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-blue-200 shadow-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+              <div className="bg-white rounded-3xl p-5 border border-blue-200/80 shadow-2xs">
                 <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider block mb-1">
                   {t.metricNewRequests}
                 </span>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-serif font-bold text-blue-900">
+                  <span className="text-3xl font-serif font-bold text-blue-950">
                     {metrics.newRequestsCount}
                   </span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+                  {metrics.newRequestsCount > 0 && (
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+                  )}
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
+              <div className="bg-white rounded-3xl p-5 border border-amber-200/80 shadow-2xs">
                 <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider block mb-1">
                   {t.metricPendingReview}
                 </span>
-                <span className="text-3xl font-serif font-bold text-amber-900">
+                <span className="text-3xl font-serif font-bold text-amber-950">
                   {metrics.pendingCount}
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-emerald-200 shadow-sm">
+              <div className="bg-white rounded-3xl p-5 border border-emerald-200/80 shadow-2xs">
                 <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider block mb-1">
                   {t.metricConfirmed}
                 </span>
-                <span className="text-3xl font-serif font-bold text-emerald-900">
+                <span className="text-3xl font-serif font-bold text-emerald-950">
                   {metrics.confirmedCount}
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+              <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-2xs">
                 <span className="text-xs font-semibold text-stone-600 uppercase tracking-wider block mb-1">
                   {t.metricRejected}
                 </span>
@@ -653,20 +663,20 @@ export default function OwnerDashboard({
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm col-span-2 lg:col-span-1">
+              <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-2xs col-span-2 sm:col-span-1">
                 <span className="text-xs font-semibold text-red-700 uppercase tracking-wider block mb-1">
                   {t.metricCancelled}
                 </span>
-                <span className="text-3xl font-serif font-bold text-red-900">
+                <span className="text-3xl font-serif font-bold text-red-950">
                   {metrics.cancelledCount}
                 </span>
               </div>
             </div>
 
             {/* Operational Stay Real Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
-                <span className="text-xs text-stone-500 block mb-1">{t.metricNightsBooked}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+              <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-2xs">
+                <span className="text-xs text-stone-500 block mb-1 font-medium">{t.metricNightsBooked}</span>
                 <span className="text-2xl font-mono font-bold text-stone-900">
                   {metrics.totalConfirmedNights}{' '}
                   <span className="text-xs font-sans text-stone-500 font-normal">
@@ -675,8 +685,8 @@ export default function OwnerDashboard({
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
-                <span className="text-xs text-stone-500 block mb-1">{t.metricOccupiedDays}</span>
+              <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-2xs">
+                <span className="text-xs text-stone-500 block mb-1 font-medium">{t.metricOccupiedDays}</span>
                 <span className="text-2xl font-mono font-bold text-stone-900">
                   {metrics.occupiedDaysCount}{' '}
                   <span className="text-xs font-sans text-stone-500 font-normal">
@@ -685,8 +695,8 @@ export default function OwnerDashboard({
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
-                <span className="text-xs text-stone-500 block mb-1">{t.metricAvgNights}</span>
+              <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-2xs">
+                <span className="text-xs text-stone-500 block mb-1 font-medium">{t.metricAvgNights}</span>
                 <span className="text-2xl font-mono font-bold text-stone-900">
                   {metrics.avgNights ? (
                     <>
@@ -703,14 +713,14 @@ export default function OwnerDashboard({
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-stone-200/80 shadow-sm">
-                <span className="text-xs text-stone-500 block mb-1">
+              <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-2xs">
+                <span className="text-xs text-stone-500 block mb-1 font-medium">
                   {language === 'ca' ? 'Comparativa mensual' : language === 'en' ? 'Monthly comparison' : 'Comparativa mensual'}
                 </span>
-                <div className="text-xs text-stone-700 space-y-1">
+                <div className="text-xs text-stone-700 space-y-1 pt-0.5">
                   <div className="flex justify-between">
                     <span>{t.metricCurrentMonth}:</span>
-                    <span className="font-mono font-bold">{metrics.currentMonthCount}</span>
+                    <span className="font-mono font-bold text-stone-900">{metrics.currentMonthCount}</span>
                   </div>
                   <div className="flex justify-between text-stone-500">
                     <span>{language === 'ca' ? 'Mes anterior' : language === 'en' ? 'Previous month' : 'Mes anterior'}:</span>
@@ -723,28 +733,30 @@ export default function OwnerDashboard({
             {/* Upcoming Arrivals and Departures Panels */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Upcoming Arrivals */}
-              <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6">
+              <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-stone-100">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="w-5 h-5 text-emerald-700" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                      <CalendarIcon className="w-4 h-4 text-emerald-800" />
+                    </div>
                     <h3 className="font-serif text-lg font-bold text-stone-900">
                       {t.metricUpcomingArrivals}
                     </h3>
                   </div>
-                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800">
+                  <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                     {metrics.upcomingArrivals.length}
                   </span>
                 </div>
 
                 {metrics.upcomingArrivals.length === 0 ? (
-                  <p className="text-xs text-stone-400 py-6 text-center">{t.metricNoData}</p>
+                  <p className="text-xs text-stone-400 py-8 text-center">{t.metricNoData}</p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {metrics.upcomingArrivals.slice(0, 5).map((b) => (
                       <div
                         key={b.id}
                         onClick={() => setSelectedBookingId(b.id)}
-                        className="p-3.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200/70 flex items-center justify-between cursor-pointer transition-colors"
+                        className="p-3.5 rounded-2xl bg-stone-50/80 hover:bg-stone-100/90 border border-stone-200/80 flex items-center justify-between cursor-pointer transition-all hover:shadow-2xs active:scale-[0.99]"
                       >
                         <div>
                           <span className="text-xs font-mono font-bold text-emerald-800 block">
@@ -763,28 +775,30 @@ export default function OwnerDashboard({
               </div>
 
               {/* Upcoming Departures */}
-              <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6">
+              <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-stone-100">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-amber-700" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-amber-800" />
+                    </div>
                     <h3 className="font-serif text-lg font-bold text-stone-900">
                       {t.metricUpcomingDepartures}
                     </h3>
                   </div>
-                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800">
+                  <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
                     {metrics.upcomingDepartures.length}
                   </span>
                 </div>
 
                 {metrics.upcomingDepartures.length === 0 ? (
-                  <p className="text-xs text-stone-400 py-6 text-center">{t.metricNoData}</p>
+                  <p className="text-xs text-stone-400 py-8 text-center">{t.metricNoData}</p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {metrics.upcomingDepartures.slice(0, 5).map((b) => (
                       <div
                         key={b.id}
                         onClick={() => setSelectedBookingId(b.id)}
-                        className="p-3.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200/70 flex items-center justify-between cursor-pointer transition-colors"
+                        className="p-3.5 rounded-2xl bg-stone-50/80 hover:bg-stone-100/90 border border-stone-200/80 flex items-center justify-between cursor-pointer transition-all hover:shadow-2xs active:scale-[0.99]"
                       >
                         <div>
                           <span className="text-xs font-mono font-bold text-amber-800 block">
@@ -807,24 +821,24 @@ export default function OwnerDashboard({
 
         {/* TAB 2: BOOKINGS LIST & MANAGEMENT */}
         {activeTab === 'bookings' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 space-y-6">
+          <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 space-y-6">
             {/* Filter and Action Header */}
-            <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+            <div className="flex flex-col lg:flex-row gap-3.5 justify-between items-stretch lg:items-center">
               {/* Search Bar */}
               <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t.btnSearchPlaceholder}
-                  className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-stone-300 focus:ring-2 focus:ring-primary-800 focus:border-transparent outline-none bg-stone-50"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/70 transition-all font-sans"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-2.5 text-stone-400 hover:text-stone-600"
+                    className="absolute right-3.5 top-3 text-stone-400 hover:text-stone-600 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -832,14 +846,14 @@ export default function OwnerDashboard({
               </div>
 
               {/* Filters & Export */}
-              <div className="flex flex-wrap items-center gap-2.5 text-xs">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
                 {/* Status selector */}
                 <div className="flex items-center gap-1.5">
                   <Filter className="w-3.5 h-3.5 text-stone-400" />
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 font-medium cursor-pointer"
+                    className="px-3 py-2 rounded-xl border border-stone-300 bg-stone-50 outline-none text-stone-700 font-medium cursor-pointer"
                   >
                     <option value="all">{t.btnFilterAll}</option>
                     <option value="new_request">{t.statusNewRequest}</option>
@@ -860,7 +874,7 @@ export default function OwnerDashboard({
                   value={dateFilterFrom}
                   onChange={(e) => setDateFilterFrom(e.target.value)}
                   title="Desde"
-                  className="px-2.5 py-1.5 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 text-xs"
+                  className="px-2.5 py-1.5 rounded-xl border border-stone-300 bg-stone-50 outline-none text-stone-700 text-xs"
                 />
                 <span className="text-stone-400">&rarr;</span>
                 <input
@@ -868,7 +882,7 @@ export default function OwnerDashboard({
                   value={dateFilterTo}
                   onChange={(e) => setDateFilterTo(e.target.value)}
                   title="Hasta"
-                  className="px-2.5 py-1.5 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 text-xs"
+                  className="px-2.5 py-1.5 rounded-xl border border-stone-300 bg-stone-50 outline-none text-stone-700 text-xs"
                 />
 
                 {/* Sort selector */}
@@ -876,7 +890,7 @@ export default function OwnerDashboard({
                   <select
                     value={sortBy}
                     onChange={(e: any) => setSortBy(e.target.value)}
-                    className="px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50 outline-none text-stone-700 font-medium cursor-pointer"
+                    className="px-2.5 py-2 rounded-xl border border-stone-300 bg-stone-50 outline-none text-stone-700 font-medium cursor-pointer"
                   >
                     <option value="createdAt">
                       {language === 'ca' ? 'Data de creació' : language === 'en' ? 'Creation date' : 'Fecha de solicitud'}
@@ -891,7 +905,7 @@ export default function OwnerDashboard({
                   <button
                     type="button"
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="p-2 rounded-lg border border-stone-300 bg-stone-50 hover:bg-stone-100 text-stone-600 cursor-pointer"
+                    className="p-2 rounded-xl border border-stone-300 bg-stone-50 hover:bg-stone-100 text-stone-600 cursor-pointer"
                     title={sortOrder === 'asc' ? 'Ascendente' : 'Descendente'}
                   >
                     <ArrowUpDown className="w-3.5 h-3.5" />
@@ -902,7 +916,7 @@ export default function OwnerDashboard({
                 <button
                   type="button"
                   onClick={handleExportCSV}
-                  className="px-3 py-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-medium flex items-center gap-1.5 transition-colors border border-stone-300 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-medium flex items-center gap-1.5 transition-colors border border-stone-300 cursor-pointer active:scale-95"
                 >
                   <Download className="w-3.5 h-3.5 text-stone-600" />
                   <span>{t.btnExportCsv}</span>
@@ -910,11 +924,86 @@ export default function OwnerDashboard({
               </div>
             </div>
 
-            {/* Bookings Table */}
-            <div className="overflow-x-auto">
+            {/* RESPONSIVE VIEW 1: Mobile Cards List (hidden on desktop md:) */}
+            <div className="block md:hidden space-y-3">
+              {filteredBookings.length === 0 ? (
+                <div className="py-12 text-center text-stone-400 text-xs">
+                  {t.metricNoData}
+                </div>
+              ) : (
+                filteredBookings.map((b) => (
+                  <div
+                    key={b.id}
+                    onClick={() => setSelectedBookingId(b.id)}
+                    className="p-4 rounded-2xl bg-stone-50/80 border border-stone-200/80 space-y-3 transition-all active:scale-[0.99] cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-stone-500">{b.id}</span>
+                      {renderStatusBadge(b.status)}
+                    </div>
+
+                    <div>
+                      <h4 className="font-serif font-bold text-stone-900 text-base">{b.guestName}</h4>
+                      <p className="text-xs font-mono text-stone-600 mt-0.5">
+                        {b.checkIn} &rarr; {b.checkOut}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-stone-500 pt-2 border-t border-stone-200/60" onClick={(e) => e.stopPropagation()}>
+                      <span>{b.guestsCount > 0 ? `${b.guestsCount} ${guestsWord}` : '—'}</span>
+
+                      <div className="flex items-center gap-2">
+                        {b.guestPhone && (
+                          <a
+                            href={`https://wa.me/${b.guestPhone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-2 rounded-lg bg-emerald-50 text-emerald-700"
+                            title="WhatsApp"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+
+                        {b.guestPhone && (
+                          <a
+                            href={`tel:${b.guestPhone}`}
+                            className="p-2 rounded-lg bg-stone-200/70 text-stone-700"
+                            title="Llamar"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+
+                        {b.guestEmail && (
+                          <a
+                            href={`mailto:${b.guestEmail}`}
+                            className="p-2 rounded-lg bg-stone-200/70 text-stone-700"
+                            title="Email"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBookingId(b.id)}
+                          className="px-3 py-1.5 rounded-lg bg-stone-800 text-white text-[11px] font-medium"
+                        >
+                          {language === 'ca' ? 'Detalls' : language === 'en' ? 'Details' : 'Detalles'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* RESPONSIVE VIEW 2: Desktop Table (hidden on mobile < md) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-stone-200 bg-stone-50 text-[11px] font-serif uppercase tracking-wider text-stone-500">
+                  <tr className="border-b border-stone-200 bg-stone-50/70 text-[11px] font-serif uppercase tracking-wider text-stone-500">
                     <th className="py-3 px-3">ID</th>
                     <th className="py-3 px-3">{t.calFullName}</th>
                     <th className="py-3 px-3">
@@ -971,7 +1060,7 @@ export default function OwnerDashboard({
                               <button
                                 type="button"
                                 onClick={() => copyToClipboard(b.guestEmail, `email-${b.id}`)}
-                                className="p-1 rounded hover:bg-stone-200 text-stone-600 cursor-pointer"
+                                className="p-1.5 rounded-lg hover:bg-stone-200 text-stone-600 cursor-pointer"
                                 title={`Copiar email: ${b.guestEmail}`}
                               >
                                 {copiedItem === `email-${b.id}` ? (
@@ -986,7 +1075,7 @@ export default function OwnerDashboard({
                               <button
                                 type="button"
                                 onClick={() => copyToClipboard(b.guestPhone, `phone-${b.id}`)}
-                                className="p-1 rounded hover:bg-stone-200 text-stone-600 cursor-pointer"
+                                className="p-1.5 rounded-lg hover:bg-stone-200 text-stone-600 cursor-pointer"
                                 title={`Copiar teléfono: ${b.guestPhone}`}
                               >
                                 {copiedItem === `phone-${b.id}` ? (
@@ -1002,7 +1091,7 @@ export default function OwnerDashboard({
                                 href={`https://wa.me/${b.guestPhone.replace(/\D/g, '')}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="p-1 rounded hover:bg-emerald-50 text-emerald-700 cursor-pointer"
+                                className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-700 cursor-pointer"
                                 title="Abrir WhatsApp"
                               >
                                 <ExternalLink className="w-3.5 h-3.5" />
@@ -1011,13 +1100,13 @@ export default function OwnerDashboard({
                           </div>
                         </td>
                         <td className="py-3.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1.5">
                             {b.status === 'new_request' || b.status === 'pending_review' ? (
                               <>
                                 <button
                                   type="button"
                                   onClick={() => onUpdateBookingStatus(b.id, 'confirmed')}
-                                  className="px-2 py-1 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold text-[11px] cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold text-[11px] cursor-pointer"
                                   title={t.btnConfirm}
                                 >
                                   {t.btnConfirm}
@@ -1025,7 +1114,7 @@ export default function OwnerDashboard({
                                 <button
                                   type="button"
                                   onClick={() => onUpdateBookingStatus(b.id, 'rejected')}
-                                  className="px-2 py-1 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer"
                                   title={t.btnReject}
                                 >
                                   {t.btnReject}
@@ -1036,7 +1125,7 @@ export default function OwnerDashboard({
                             <button
                               type="button"
                               onClick={() => setSelectedBookingId(b.id)}
-                              className="px-2 py-1 rounded border border-stone-200 hover:bg-stone-100 text-stone-700 text-[11px] cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-700 text-[11px] cursor-pointer"
                             >
                               {language === 'ca' ? 'Veure detalls' : language === 'en' ? 'View details' : 'Ver detalle'}
                             </button>
@@ -1053,11 +1142,13 @@ export default function OwnerDashboard({
 
         {/* TAB 3: VISUAL CALENDAR */}
         {activeTab === 'calendar' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 space-y-6">
+          <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 space-y-6">
             {/* Calendar Month Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+            <div className="flex items-center justify-between pb-4 border-b border-stone-200/80">
               <div className="flex items-center gap-3">
-                <CalendarIcon className="w-6 h-6 text-primary-800" />
+                <div className="w-10 h-10 rounded-xl bg-[#1C2E15]/10 text-[#1C2E15] flex items-center justify-center">
+                  <CalendarIcon className="w-5 h-5 text-[#1C2E15]" />
+                </div>
                 <h3 className="font-serif text-2xl font-bold text-stone-900">
                   {calendarDate.toLocaleString(language === 'ca' ? 'ca-ES' : language === 'en' ? 'en-US' : 'es-ES', {
                     month: 'long',
@@ -1072,14 +1163,14 @@ export default function OwnerDashboard({
                   onClick={() =>
                     setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))
                   }
-                  className="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 cursor-pointer"
+                  className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-600 cursor-pointer active:scale-95"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setCalendarDate(new Date())}
-                  className="px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-medium hover:bg-stone-50 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl border border-stone-200 text-xs font-medium hover:bg-stone-50 cursor-pointer"
                 >
                   {language === 'ca' ? 'Avui' : language === 'en' ? 'Today' : 'Hoy'}
                 </button>
@@ -1088,7 +1179,7 @@ export default function OwnerDashboard({
                   onClick={() =>
                     setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))
                   }
-                  className="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 cursor-pointer"
+                  className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-600 cursor-pointer active:scale-95"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -1112,7 +1203,7 @@ export default function OwnerDashboard({
 
               return (
                 <div>
-                  <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-serif font-bold text-stone-500 uppercase tracking-wider">
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center text-xs font-serif font-bold text-stone-500 uppercase tracking-wider">
                     {weekLabels.map((wl, i) => (
                       <div key={i} className="py-2">
                         {wl.slice(0, 3)}
@@ -1120,9 +1211,9 @@ export default function OwnerDashboard({
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-7 gap-2">
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2">
                     {Array.from({ length: calFirstDay }).map((_, i) => (
-                      <div key={`cal-pad-${i}`} className="min-h-[90px] rounded-xl bg-stone-50/50" />
+                      <div key={`cal-pad-${i}`} className="min-h-[70px] sm:min-h-[95px] rounded-2xl bg-stone-50/50" />
                     ))}
 
                     {Array.from({ length: calDaysInMonth }).map((_, i) => {
@@ -1144,16 +1235,16 @@ export default function OwnerDashboard({
                       return (
                         <div
                           key={`cal-day-${dayNum}`}
-                          className={`min-h-[90px] p-2 rounded-xl border transition-all flex flex-col justify-between ${
+                          className={`min-h-[70px] sm:min-h-[95px] p-1.5 sm:p-2 rounded-2xl border transition-all flex flex-col justify-between ${
                             isToday
-                              ? 'border-primary-800 bg-primary-50/30'
-                              : 'border-stone-200 bg-white hover:border-stone-400'
+                              ? 'border-[#1C2E15] bg-[#1C2E15]/5'
+                              : 'border-stone-200/80 bg-white hover:border-stone-400'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span
                               className={`text-xs font-mono font-bold ${
-                                isToday ? 'text-primary-900 bg-primary-200 px-1.5 rounded' : 'text-stone-700'
+                                isToday ? 'text-[#1C2E15] bg-[#1C2E15]/10 px-1.5 py-0.5 rounded-md' : 'text-stone-700'
                               }`}
                             >
                               {dayNum}
@@ -1178,7 +1269,7 @@ export default function OwnerDashboard({
                                   key={b.id}
                                   type="button"
                                   onClick={() => setSelectedBookingId(b.id)}
-                                  className={`w-full text-left p-1 rounded-md text-[10px] font-medium border truncate block cursor-pointer ${badgeClass}`}
+                                  className={`w-full text-left p-1 rounded-lg text-[9px] sm:text-[10px] font-medium border truncate block cursor-pointer ${badgeClass}`}
                                   title={`${b.guestName} (${b.status})`}
                                 >
                                   {b.guestName}
@@ -1195,21 +1286,21 @@ export default function OwnerDashboard({
             })()}
 
             {/* Calendar Legend */}
-            <div className="pt-4 border-t border-stone-200 flex flex-wrap items-center gap-4 text-xs text-stone-600">
+            <div className="pt-4 border-t border-stone-200/80 flex flex-wrap items-center gap-4 text-xs text-stone-600">
               <div className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 rounded bg-emerald-100 border border-emerald-400" />
+                <span className="w-3.5 h-3.5 rounded-md bg-emerald-100 border border-emerald-400" />
                 <span>{t.statusConfirmed}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 rounded bg-blue-100 border border-blue-400" />
+                <span className="w-3.5 h-3.5 rounded-md bg-blue-100 border border-blue-400" />
                 <span>{t.statusNewRequest}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 rounded bg-amber-100 border border-amber-400" />
+                <span className="w-3.5 h-3.5 rounded-md bg-amber-100 border border-amber-400" />
                 <span>{t.statusPendingReview}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 rounded bg-stone-200 border border-stone-400" />
+                <span className="w-3.5 h-3.5 rounded-md bg-stone-200 border border-stone-400" />
                 <span>{t.statusBlocked}</span>
               </div>
             </div>
@@ -1218,9 +1309,9 @@ export default function OwnerDashboard({
 
         {/* TAB 4: SETTINGS */}
         {activeTab === 'settings' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 sm:p-8 max-w-2xl mx-auto space-y-6">
-            <div className="border-b border-stone-200 pb-4">
-              <h3 className="font-serif text-xl font-bold text-stone-900">
+          <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-6 sm:p-8 max-w-2xl mx-auto space-y-6">
+            <div className="border-b border-stone-200/80 pb-4">
+              <h3 className="font-serif text-2xl font-bold text-stone-900">
                 {t.dashTabSettings}
               </h3>
               <p className="text-xs text-stone-500 mt-1">
@@ -1233,7 +1324,7 @@ export default function OwnerDashboard({
             </div>
 
             {settingsSavedMessage && (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>{language === 'ca' ? 'Configuració guardada correctament.' : language === 'en' ? 'Settings saved successfully.' : 'Configuración guardada correctamente.'}</span>
               </div>
@@ -1241,7 +1332,7 @@ export default function OwnerDashboard({
 
             <form onSubmit={handleSaveSettings} className="space-y-4 text-xs sm:text-sm">
               <div>
-                <label className="block font-semibold text-stone-700 mb-1">
+                <label className="block font-semibold text-stone-700 mb-1.5">
                   {language === 'ca' ? 'Capacitat màxima d’hostes' : language === 'en' ? 'Maximum guest capacity' : 'Capacidad máxima de huéspedes'}
                 </label>
                 <input
@@ -1250,13 +1341,13 @@ export default function OwnerDashboard({
                   max={20}
                   value={tempCapacity}
                   onChange={(e) => setTempCapacity(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-stone-700 mb-1">
+                <label className="block font-semibold text-stone-700 mb-1.5">
                   {language === 'ca' ? 'Estada mínima (nits)' : language === 'en' ? 'Minimum stay (nights)' : 'Estancia mínima (noches)'}
                 </label>
                 <input
@@ -1265,14 +1356,14 @@ export default function OwnerDashboard({
                   max={14}
                   value={tempMinNights}
                   onChange={(e) => setTempMinNights(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-stone-700 mb-1">
+                  <label className="block font-semibold text-stone-700 mb-1.5">
                     {language === 'ca' ? 'Hora d’entrada (Check-in)' : language === 'en' ? 'Check-in time' : 'Hora de entrada (Check-in)'}
                   </label>
                   <input
@@ -1280,11 +1371,11 @@ export default function OwnerDashboard({
                     value={tempCheckInTime}
                     onChange={(e) => setTempCheckInTime(e.target.value)}
                     placeholder="16:00"
-                    className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-stone-700 mb-1">
+                  <label className="block font-semibold text-stone-700 mb-1.5">
                     {language === 'ca' ? 'Hora de sortida (Check-out)' : language === 'en' ? 'Check-out time' : 'Hora de salida (Check-out)'}
                   </label>
                   <input
@@ -1292,38 +1383,38 @@ export default function OwnerDashboard({
                     value={tempCheckOutTime}
                     onChange={(e) => setTempCheckOutTime(e.target.value)}
                     placeholder="11:00"
-                    className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-stone-700 mb-1">
+                <label className="block font-semibold text-stone-700 mb-1.5">
                   {language === 'ca' ? 'Email de contacte familiar' : language === 'en' ? 'Family contact email' : 'Email de contacto familiar'}
                 </label>
                 <input
                   type="email"
                   value={tempContactEmail}
                   onChange={(e) => setTempContactEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-stone-700 mb-1">
+                <label className="block font-semibold text-stone-700 mb-1.5">
                   {language === 'ca' ? 'Telèfon de contacte familiar' : language === 'en' ? 'Family contact phone' : 'Teléfono de contacto familiar'}
                 </label>
                 <input
                   type="text"
                   value={tempContactPhone}
                   onChange={(e) => setTempContactPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-primary-800 text-white font-semibold text-sm hover:bg-primary-900 transition-colors cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-[0.99]"
               >
                 {language === 'ca' ? 'Guardar configuració' : language === 'en' ? 'Save settings' : 'Guardar configuración'}
               </button>
@@ -1338,24 +1429,24 @@ export default function OwnerDashboard({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
             >
               <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                className="bg-white rounded-2xl shadow-2xl border border-stone-200 max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.95, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 10 }}
+                className="bg-white rounded-3xl shadow-2xl border border-stone-200 max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto"
               >
                 {/* Drawer Header */}
-                <div className="flex items-start justify-between border-b border-stone-200 pb-4">
+                <div className="flex items-start justify-between border-b border-stone-200/80 pb-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono text-xs font-bold text-stone-500">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="font-mono text-xs font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md">
                         {activeSelectedBooking.id}
                       </span>
                       {renderStatusBadge(activeSelectedBooking.status)}
                     </div>
-                    <h3 className="font-serif text-2xl font-bold text-stone-900">
+                    <h3 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900">
                       {activeSelectedBooking.guestName}
                     </h3>
                   </div>
@@ -1363,26 +1454,26 @@ export default function OwnerDashboard({
                   <button
                     type="button"
                     onClick={() => setSelectedBookingId(null)}
-                    className="p-2 rounded-lg hover:bg-stone-100 text-stone-500 cursor-pointer"
+                    className="p-2 rounded-xl hover:bg-stone-100 text-stone-400 hover:text-stone-700 cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Stay Info & Contact */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-stone-50 p-4 rounded-xl border border-stone-200/70">
+                {/* Stay Info & Contact Details */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-[#FAFAF5] p-5 rounded-2xl border border-stone-200/80">
                   <div>
-                    <span className="text-stone-400 block mb-0.5">
-                      {language === 'ca' ? 'Dates' : language === 'en' ? 'Dates' : 'Fechas'}
+                    <span className="text-stone-400 block mb-1 font-medium">
+                      {language === 'ca' ? 'Dates d’estada' : language === 'en' ? 'Stay dates' : 'Fechas de estancia'}
                     </span>
-                    <span className="font-mono font-bold text-stone-800 text-sm">
+                    <span className="font-mono font-bold text-stone-900 text-sm">
                       {activeSelectedBooking.checkIn} &rarr; {activeSelectedBooking.checkOut}
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-stone-400 block mb-0.5">{t.calNumGuests}</span>
-                    <span className="font-bold text-stone-800 text-sm">
+                    <span className="text-stone-400 block mb-1 font-medium">{t.calNumGuests}</span>
+                    <span className="font-bold text-stone-900 text-sm">
                       {activeSelectedBooking.guestsCount > 0
                         ? `${activeSelectedBooking.guestsCount} ${guestsWord}`
                         : '—'}
@@ -1392,10 +1483,10 @@ export default function OwnerDashboard({
                   {activeSelectedBooking.guestEmail && (
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-stone-400 block mb-0.5">Email</span>
+                        <span className="text-stone-400 block mb-1 font-medium">Email</span>
                         <a
                           href={`mailto:${activeSelectedBooking.guestEmail}`}
-                          className="font-mono text-primary-800 hover:underline"
+                          className="font-mono text-[#1C2E15] hover:underline font-semibold"
                         >
                           {activeSelectedBooking.guestEmail}
                         </a>
@@ -1403,7 +1494,7 @@ export default function OwnerDashboard({
                       <button
                         type="button"
                         onClick={() => copyToClipboard(activeSelectedBooking.guestEmail, 'modal-email')}
-                        className="p-1 rounded hover:bg-stone-200 text-stone-500 cursor-pointer"
+                        className="p-1.5 rounded-lg hover:bg-stone-200 text-stone-500 cursor-pointer"
                         title="Copiar"
                       >
                         {copiedItem === 'modal-email' ? (
@@ -1418,26 +1509,37 @@ export default function OwnerDashboard({
                   {activeSelectedBooking.guestPhone && (
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-stone-400 block mb-0.5">{t.calPhone}</span>
+                        <span className="text-stone-400 block mb-1 font-medium">{t.calPhone}</span>
                         <a
                           href={`tel:${activeSelectedBooking.guestPhone}`}
-                          className="font-mono text-primary-800 hover:underline"
+                          className="font-mono text-[#1C2E15] hover:underline font-semibold"
                         >
                           {activeSelectedBooking.guestPhone}
                         </a>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(activeSelectedBooking.guestPhone, 'modal-phone')}
-                        className="p-1 rounded hover:bg-stone-200 text-stone-500 cursor-pointer"
-                        title="Copiar"
-                      >
-                        {copiedItem === 'modal-phone' ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(activeSelectedBooking.guestPhone, 'modal-phone')}
+                          className="p-1.5 rounded-lg hover:bg-stone-200 text-stone-500 cursor-pointer"
+                          title="Copiar"
+                        >
+                          {copiedItem === 'modal-phone' ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        <a
+                          href={`https://wa.me/${activeSelectedBooking.guestPhone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          title="WhatsApp"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1449,14 +1551,14 @@ export default function OwnerDashboard({
                       <MessageSquare className="w-3.5 h-3.5 text-stone-500" />
                       <span>{t.calMessageLabel}</span>
                     </h4>
-                    <p className="text-xs text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-200 whitespace-pre-wrap">
+                    <p className="text-xs text-stone-700 bg-stone-50 p-3.5 rounded-xl border border-stone-200 whitespace-pre-wrap leading-relaxed font-sans">
                       {activeSelectedBooking.notes}
                     </p>
                   </div>
                 )}
 
                 {/* Status Action Buttons */}
-                <div className="border-t border-b border-stone-200 py-4 space-y-2">
+                <div className="border-t border-b border-stone-200/80 py-4 space-y-2.5">
                   <span className="text-xs font-semibold text-stone-700 block">
                     {language === 'ca' ? 'Canviar estat de la sol·licitud' : language === 'en' ? 'Update request status' : 'Cambiar estado de la solicitud'}:
                   </span>
@@ -1464,7 +1566,7 @@ export default function OwnerDashboard({
                     <button
                       type="button"
                       onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'confirmed')}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-semibold text-xs hover:bg-emerald-800 flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-emerald-700 text-white font-semibold text-xs hover:bg-emerald-800 flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <Check className="w-3.5 h-3.5" />
                       {t.btnConfirm}
@@ -1473,7 +1575,7 @@ export default function OwnerDashboard({
                     <button
                       type="button"
                       onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'contacted')}
-                      className="px-3 py-1.5 rounded-lg bg-purple-100 text-purple-800 font-semibold text-xs hover:bg-purple-200 flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-purple-100 text-purple-900 font-semibold text-xs hover:bg-purple-200 flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <PhoneCall className="w-3.5 h-3.5" />
                       {language === 'ca' ? 'Marcar contactada' : language === 'en' ? 'Mark contacted' : 'Marcar contactada'}
@@ -1482,7 +1584,7 @@ export default function OwnerDashboard({
                     <button
                       type="button"
                       onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'rejected')}
-                      className="px-3 py-1.5 rounded-lg bg-stone-200 text-stone-800 font-semibold text-xs hover:bg-stone-300 flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-stone-200 text-stone-800 font-semibold text-xs hover:bg-stone-300 flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <X className="w-3.5 h-3.5" />
                       {t.btnReject}
@@ -1491,7 +1593,7 @@ export default function OwnerDashboard({
                     <button
                       type="button"
                       onClick={() => onUpdateBookingStatus(activeSelectedBooking.id, 'cancelled')}
-                      className="px-3 py-1.5 rounded-lg bg-red-100 text-red-800 font-semibold text-xs hover:bg-red-200 flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-red-100 text-red-900 font-semibold text-xs hover:bg-red-200 flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <XCircle className="w-3.5 h-3.5" />
                       {t.btnCancel}
@@ -1501,7 +1603,7 @@ export default function OwnerDashboard({
                       <button
                         type="button"
                         onClick={() => onArchiveBooking(activeSelectedBooking.id)}
-                        className="px-3 py-1.5 rounded-lg border border-stone-300 text-stone-600 text-xs hover:bg-stone-100 flex items-center gap-1.5 cursor-pointer"
+                        className="px-3 py-2 rounded-xl border border-stone-300 text-stone-600 text-xs hover:bg-stone-100 flex items-center gap-1.5 cursor-pointer"
                       >
                         <Archive className="w-3.5 h-3.5" />
                         {t.btnArchive}
@@ -1510,7 +1612,7 @@ export default function OwnerDashboard({
                       <button
                         type="button"
                         onClick={() => onRestoreBooking(activeSelectedBooking.id)}
-                        className="px-3 py-1.5 rounded-lg border border-stone-300 text-stone-600 text-xs hover:bg-stone-100 flex items-center gap-1.5 cursor-pointer"
+                        className="px-3 py-2 rounded-xl border border-stone-300 text-stone-600 text-xs hover:bg-stone-100 flex items-center gap-1.5 cursor-pointer"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         {t.btnRestore}
@@ -1522,7 +1624,7 @@ export default function OwnerDashboard({
                       onClick={() => {
                         setBookingToDelete(activeSelectedBooking);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs hover:bg-red-100 flex items-center gap-1.5 ml-auto cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs hover:bg-red-100 flex items-center gap-1.5 ml-auto cursor-pointer"
                       title={t.btnDelete}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -1531,7 +1633,7 @@ export default function OwnerDashboard({
                   </div>
                 </div>
 
-                {/* Internal Notes Section */}
+                {/* Internal Private Notes Section */}
                 <div className="space-y-3">
                   <h4 className="font-semibold text-xs text-stone-800 flex items-center gap-1.5">
                     <FileText className="w-4 h-4 text-stone-600" />
@@ -1546,37 +1648,37 @@ export default function OwnerDashboard({
                         value={newNoteAuthor}
                         onChange={(e) => setNewNoteAuthor(e.target.value)}
                         placeholder={language === 'ca' ? 'Autor' : language === 'en' ? 'Author' : 'Autor'}
-                        className="w-1/3 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 bg-stone-50"
+                        className="w-1/3 px-3 py-2 text-xs rounded-xl border border-stone-300 bg-stone-50/70"
                       />
                       <input
                         type="text"
                         value={newNoteText}
                         onChange={(e) => setNewNoteText(e.target.value)}
                         placeholder={t.notesPlaceholder}
-                        className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 bg-stone-50"
+                        className="flex-1 px-3 py-2 text-xs rounded-xl border border-stone-300 bg-stone-50/70"
                       />
                     </div>
                     <button
                       type="submit"
                       disabled={!newNoteText.trim()}
-                      className="px-3 py-1.5 rounded-lg bg-stone-800 text-white font-medium text-xs hover:bg-stone-900 disabled:opacity-50 cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-stone-800 text-white font-medium text-xs hover:bg-stone-900 disabled:opacity-50 cursor-pointer"
                     >
                       {t.notesAddBtn}
                     </button>
                   </form>
 
                   {/* Notes list */}
-                  <div className="space-y-2 max-h-36 overflow-y-auto">
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
                     {(activeSelectedBooking.internalNotes || []).length === 0 ? (
                       <p className="text-xs text-stone-400 italic">No hay notas internas todavía.</p>
                     ) : (
                       activeSelectedBooking.internalNotes?.map((n) => (
-                        <div key={n.id} className="p-2.5 rounded-lg bg-stone-50 border border-stone-200 text-xs">
+                        <div key={n.id} className="p-3 rounded-xl bg-stone-50 border border-stone-200 text-xs">
                           <div className="flex justify-between text-[11px] text-stone-500 mb-1">
-                            <span className="font-semibold text-stone-700">{n.author}</span>
-                            <span>{new Date(n.createdAt).toLocaleString(language === 'ca' ? 'ca-ES' : 'es-ES')}</span>
+                            <span className="font-semibold text-stone-800">{n.author}</span>
+                            <span>{new Date(n.createdAt || n.timestamp || '').toLocaleString(language === 'ca' ? 'ca-ES' : 'es-ES')}</span>
                           </div>
-                          <p className="text-stone-800">{n.text}</p>
+                          <p className="text-stone-800">{n.text || n.content}</p>
                         </div>
                       ))
                     )}
@@ -1584,21 +1686,21 @@ export default function OwnerDashboard({
                 </div>
 
                 {/* Chronological Activity History */}
-                <div className="border-t border-stone-200 pt-4 space-y-3">
+                <div className="border-t border-stone-200/80 pt-4 space-y-3">
                   <h4 className="font-semibold text-xs text-stone-800 flex items-center gap-1.5">
                     <History className="w-4 h-4 text-stone-600" />
                     <span>{t.historyTitle}</span>
                   </h4>
 
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2.5 max-h-44 overflow-y-auto">
                     {(activeSelectedBooking.history || []).map((act) => (
-                      <div key={act.id} className="text-xs flex items-start gap-2 text-stone-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-1.5 shrink-0" />
+                      <div key={act.id} className="text-xs flex items-start gap-2.5 text-stone-600">
+                        <span className="w-2 h-2 rounded-full bg-stone-400 mt-1.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-stone-800">{act.description}</span>
-                          <span className="text-[10px] text-stone-400 block">
+                          <span className="font-medium text-stone-900">{act.description}</span>
+                          <span className="text-[10px] text-stone-400 block font-mono mt-0.5">
                             {new Date(act.timestamp).toLocaleString(language === 'ca' ? 'ca-ES' : 'es-ES')} &bull;{' '}
-                            {act.actor}
+                            {act.actor || act.author}
                           </span>
                         </div>
                       </div>
@@ -1617,38 +1719,40 @@ export default function OwnerDashboard({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
             >
               <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                className="bg-white rounded-2xl shadow-xl border border-stone-200 max-w-md w-full p-6 space-y-4"
+                initial={{ scale: 0.95, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 10 }}
+                className="bg-white rounded-3xl shadow-2xl border border-stone-200 max-w-md w-full p-6 sm:p-7 space-y-4"
               >
-                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-5 h-5 text-stone-700" />
-                    <h3 className="font-serif text-lg font-bold text-stone-900">
+                <div className="flex items-center justify-between border-b border-stone-200/80 pb-3.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-stone-100 text-stone-800 flex items-center justify-center">
+                      <Lock className="w-4 h-4 text-stone-700" />
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-stone-900">
                       {t.btnBlockDates}
                     </h3>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowBlockModal(false)}
-                    className="p-1 rounded hover:bg-stone-100 text-stone-400 cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {blockError && (
-                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                     <span>{blockError}</span>
                   </div>
                 )}
 
-                <form onSubmit={handleBlockSubmit} className="space-y-3 text-xs">
+                <form onSubmit={handleBlockSubmit} className="space-y-3.5 text-xs">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block font-semibold text-stone-700 mb-1">Check-in *</label>
@@ -1657,7 +1761,7 @@ export default function OwnerDashboard({
                         value={blockCheckIn}
                         onChange={(e) => setBlockCheckIn(e.target.value)}
                         required
-                        className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                       />
                     </div>
                     <div>
@@ -1667,7 +1771,7 @@ export default function OwnerDashboard({
                         value={blockCheckOut}
                         onChange={(e) => setBlockCheckOut(e.target.value)}
                         required
-                        className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                       />
                     </div>
                   </div>
@@ -1681,7 +1785,7 @@ export default function OwnerDashboard({
                       value={blockReason}
                       onChange={(e) => setBlockReason(e.target.value)}
                       placeholder="Ex: Manteniment, ús familiar..."
-                      className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                     />
                   </div>
 
@@ -1694,21 +1798,21 @@ export default function OwnerDashboard({
                       value={blockAuthor}
                       onChange={(e) => setBlockAuthor(e.target.value)}
                       placeholder="Familia"
-                      className="w-full px-2.5 py-2 rounded-lg border border-stone-300 bg-stone-50"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-stone-50/70 outline-none focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15]"
                     />
                   </div>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-2.5 pt-2">
                     <button
                       type="button"
                       onClick={() => setShowBlockModal(false)}
-                      className="flex-1 py-2 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer"
+                      className="flex-1 py-2.5 px-4 rounded-xl border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer"
                     >
                       {language === 'ca' ? 'Cancel·lar' : language === 'en' ? 'Cancel' : 'Cancelar'}
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 py-2 px-3 rounded-lg bg-primary-800 text-white font-medium hover:bg-primary-900 cursor-pointer"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-[#1C2E15] text-white font-medium hover:bg-[#121C0E] cursor-pointer shadow-sm"
                     >
                       {t.btnBlockDates}
                     </button>
@@ -1729,32 +1833,32 @@ export default function OwnerDashboard({
               className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
             >
               <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                className="bg-white rounded-2xl shadow-xl border border-stone-200 max-w-sm w-full p-6 text-center space-y-4"
+                initial={{ scale: 0.95, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 10 }}
+                className="bg-white rounded-3xl shadow-2xl border border-stone-200 max-w-sm w-full p-6 text-center space-y-4"
               >
-                <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
+                  <AlertTriangle className="w-7 h-7 text-red-600" />
                 </div>
 
                 <div>
-                  <h3 className="font-serif text-lg font-bold text-stone-900">
+                  <h3 className="font-serif text-xl font-bold text-stone-900">
                     {t.deleteConfirmTitle}
                   </h3>
-                  <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                  <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
                     {t.deleteConfirmDesc}
                   </p>
-                  <p className="text-xs font-mono font-bold text-stone-800 mt-2">
+                  <p className="text-xs font-mono font-bold text-stone-900 mt-2.5 p-2 bg-stone-100 rounded-lg">
                     {bookingToDelete.guestName} &bull; {bookingToDelete.id}
                   </p>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setBookingToDelete(null)}
-                    className="flex-1 py-2 px-3 rounded-lg border border-stone-300 text-stone-700 text-xs font-medium hover:bg-stone-50 cursor-pointer"
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-stone-300 text-stone-700 text-xs font-medium hover:bg-stone-50 cursor-pointer"
                   >
                     {language === 'ca' ? 'Cancel·lar' : language === 'en' ? 'Cancel' : 'Cancelar'}
                   </button>
@@ -1767,7 +1871,7 @@ export default function OwnerDashboard({
                         setSelectedBookingId(null);
                       }
                     }}
-                    className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer shadow-sm"
                   >
                     {t.btnDelete}
                   </button>
