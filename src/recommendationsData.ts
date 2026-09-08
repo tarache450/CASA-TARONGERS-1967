@@ -326,7 +326,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
       es: 'Deporte y Comunidad',
       en: 'Sports & Community'
     },
-    image: '/images/casa_tarongers_tennis_1784214077486.jpg',
+    image: '/images/casa_tarongers_fronton.jpg',
     externalUrl: 'https://campionat-frontenis-els-tarongers.vercel.app/el-meu-torneig',
     description: {
       ca: 'Gran campionat local de frontenis relacionat amb la zona d\'Els Tarongers. Un esdeveniment esportiu i comunitari únic per gaudir de la passió pel frontó.',
