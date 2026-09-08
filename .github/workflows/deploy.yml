@@ -34,15 +34,31 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           APP_URL: https://casatarongers1967.com
 
-      - name: Deploy via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+      - name: Deploy via FTP to Domain
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
+          server: 92.113.28.158
           username: u898585567
           password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: domains/casatarongers1967.com/public_html/
+          dangerous-clean-slate: false
+          port: 21
+          protocol: ftps
+          security: loose
+          timeout: 180000
+
+      - name: Deploy via FTP to Root
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
           server: 92.113.28.158
-          port: 65002
-          local_path: './dist/*'
-          remote_path: '/home/u898585567/domains/casatarongers1967.com/public_html'
-          sftp_only: false
-          delete_remote_files: true
+          username: u898585567
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: public_html/
+          dangerous-clean-slate: false
+          port: 21
+          protocol: ftps
+          security: loose
+          timeout: 180000
 
