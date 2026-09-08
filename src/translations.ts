@@ -154,6 +154,7 @@ export interface TranslationDict {
   familyPinLabel: string;
   familyPinPlaceholder: string;
   familyPinSuccess: string;
+  familyPinError: string;
   familyRegisterBtn: string;
 
   // Info Tarifas Block
@@ -325,6 +326,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familyPinLabel: 'Código PIN Familiar',
     familyPinPlaceholder: 'Introduce el PIN de 4 dígitos',
     familyPinSuccess: 'PIN verificado. Reserva familiar sin coste de mantenimiento.',
+    familyPinError: 'PIN familiar incorrecto.',
     familyRegisterBtn: 'Registrar Estancia Familiar',
 
     // Info Tarifas
@@ -494,6 +496,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familyPinLabel: 'Codi PIN Familiar',
     familyPinPlaceholder: 'Introdueix el PIN de 4 dígits',
     familyPinSuccess: 'PIN verificat. Reserva familiar sense cost de manteniment.',
+    familyPinError: 'PIN familiar incorrecte.',
     familyRegisterBtn: 'Registrar Estada Familiar',
 
     // Info Tarifas
@@ -663,6 +666,7 @@ export const TRANSLATIONS: Record<Language, TranslationDict> = {
     familyPinLabel: 'Family PIN Code',
     familyPinPlaceholder: 'Enter 4-digit PIN code',
     familyPinSuccess: 'PIN verified. Family stay with zero maintenance rate.',
+    familyPinError: 'Incorrect family PIN code.',
     familyRegisterBtn: 'Register Family Stay',
 
     // Info Tarifas
