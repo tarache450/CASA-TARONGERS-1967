@@ -74,16 +74,8 @@ export default function OwnerDashboard({
 }: OwnerDashboardProps) {
   const t = TRANSLATIONS[language];
 
-  // Auth State
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      const token = apiClient.getToken();
-      const localAuth = localStorage.getItem('tarongers_authenticated');
-      return !!token || localAuth === 'true';
-    } catch {
-      return false;
-    }
-  });
+  // Auth State - Always requires PIN entry when touching the access button
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [showPin, setShowPin] = useState(false);
@@ -171,9 +163,6 @@ export default function OwnerDashboard({
     if (cleanPin === '1967') {
       const sessionToken = `family_session_${Date.now()}`;
       apiClient.setToken(sessionToken);
-      try {
-        localStorage.setItem('tarongers_authenticated', 'true');
-      } catch (err) {}
       setIsAuthenticated(true);
 
       if (onRefreshBookings) {
@@ -527,7 +516,13 @@ export default function OwnerDashboard({
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-[11px] font-mono mb-3">
-            <span>Casa Tarongers 1967 · Acceso Familiar</span>
+            <span>
+              {language === 'ca'
+                ? 'Accés Privat Familiar'
+                : language === 'en'
+                ? 'Private Family Access'
+                : 'Acceso Privado Familiar'}
+            </span>
           </div>
 
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mb-2">
