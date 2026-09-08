@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Booking, PropertySettings, BookingStatus } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Booking, PropertySettings, BookingStatus, ReservationActivity, AvailabilityBlock } from '../types';
 import { Language, TRANSLATIONS } from '../translations';
+import { apiClient } from '../services/apiClient';
 import {
   Lock,
   Calendar as CalendarIcon,
@@ -33,7 +34,8 @@ import {
   Check,
   Trash2,
   User,
-  Sparkles
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -50,6 +52,8 @@ interface OwnerDashboardProps {
   onAddNote: (id: string, noteText: string, author: string) => void;
   onBlockDates: (block: { checkIn: string; checkOut: string; reason: string; createdBy: string }) => void;
   onUnblockDates: (id: string) => void;
+  onRefreshBookings?: () => Promise<void>;
+  isRefreshing?: boolean;
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
@@ -64,18 +68,46 @@ export default function OwnerDashboard({
   onRestoreBooking,
   onAddNote,
   onBlockDates,
+  onRefreshBookings,
+  isRefreshing = false,
   language
 }: OwnerDashboardProps) {
   const t = TRANSLATIONS[language];
 
   // Auth State
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!apiClient.getToken());
+  const [authMode, setAuthMode] = useState<'pin' | 'email'>('pin');
+  const [adminEmail, setAdminEmail] = useState('');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [showPin, setShowPin] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'activity' | 'settings'>('dashboard');
+
+  // Activity Audit Log
+  const [activityList, setActivityList] = useState<ReservationActivity[]>([]);
+  const [isLoadingActivity, setIsLoadingActivity] = useState(false);
+
+  // Load activity log when tab is active or authenticated
+  const loadActivityData = async () => {
+    try {
+      setIsLoadingActivity(true);
+      const data = await apiClient.getReservationActivity();
+      setActivityList(data);
+    } catch (e) {
+      console.warn('Could not load activity log:', e);
+    } finally {
+      setIsLoadingActivity(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadActivityData();
+    }
+  }, [isAuthenticated, activeTab]);
 
   // Filter & Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,20 +156,34 @@ export default function OwnerDashboard({
 
   const guestsWord = language === 'en' ? 'guests' : 'huéspedes';
 
-  // Login handler
-  const handleLogin = (e: React.FormEvent) => {
+  // Login handler connected to backend & admin_users verification
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === '1967') {
+    setIsLoggingIn(true);
+    setPinError('');
+    try {
+      if (authMode === 'pin') {
+        await apiClient.verifyFamilyPin(pin);
+      } else {
+        await apiClient.verifyFamilyPin(undefined, adminEmail);
+      }
       setIsAuthenticated(true);
-      setPinError('');
-    } else {
-      setPinError(t.dashPinError);
+      if (onRefreshBookings) {
+        await onRefreshBookings();
+      }
+      loadActivityData();
+    } catch (err: any) {
+      setPinError(err.message || t.dashPinError);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   const handleLogout = () => {
+    apiClient.setToken(null);
     setIsAuthenticated(false);
     setPin('');
+    setAdminEmail('');
   };
 
   // Copy helper
@@ -150,12 +196,13 @@ export default function OwnerDashboard({
   // Compute stats strictly with real data (no fake numbers)
   const metrics = useMemo(() => {
     const totalCount = bookings.length;
-    const newRequests = bookings.filter((b) => b.status === 'new_request');
-    const pendingReview = bookings.filter((b) => b.status === 'pending_review' || b.status === 'contacted');
+    const newRequests = bookings.filter((b) => b.status === 'pending' || b.status === 'new_request');
+    const pendingReview = bookings.filter((b) => b.status === 'pending' || b.status === 'pending_review');
+    const contacted = bookings.filter((b) => b.status === 'contacted');
     const confirmed = bookings.filter((b) => b.status === 'confirmed');
     const rejected = bookings.filter((b) => b.status === 'rejected');
     const cancelled = bookings.filter((b) => b.status === 'cancelled');
-    const blocked = bookings.filter((b) => b.status === 'blocked');
+    const blocked = bookings.filter((b) => b.status === 'blocked' || b.isManualBlock);
 
     // Upcoming arrivals (confirmed, checkIn >= today)
     const upcomingArrivals = confirmed
@@ -214,6 +261,7 @@ export default function OwnerDashboard({
       totalCount,
       newRequestsCount: newRequests.length,
       pendingCount: pendingReview.length,
+      contactedCount: contacted.length,
       confirmedCount: confirmed.length,
       rejectedCount: rejected.length,
       cancelledCount: cancelled.length,
@@ -471,29 +519,62 @@ export default function OwnerDashboard({
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mb-2">
             {t.familyDashboard}
           </h2>
-          <p className="text-stone-500 text-xs sm:text-sm mb-6 leading-relaxed">
-            {t.dashPinDesc}
+          <p className="text-stone-500 text-xs sm:text-sm mb-5 leading-relaxed">
+            {authMode === 'pin' ? t.dashPinDesc : 'Accede utilizando tu correo autorizado en la tabla admin_users de Supabase.'}
           </p>
+
+          {/* Auth Mode Toggle */}
+          <div className="flex bg-stone-100 p-1 rounded-xl mb-4 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => { setAuthMode('pin'); setPinError(''); }}
+              className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${authMode === 'pin' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500 hover:text-stone-900'}`}
+            >
+              PIN Familiar (1967)
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('email'); setPinError(''); }}
+              className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${authMode === 'email' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500 hover:text-stone-900'}`}
+            >
+              Email Autorizado
+            </button>
+          </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <div className="relative">
-                <input
-                  type={showPin ? 'text' : 'password'}
-                  maxLength={6}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  placeholder="••••"
-                  className="w-full text-center tracking-[0.6em] text-2xl font-mono py-3.5 px-4 rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3.5 top-4 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
-                >
-                  {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
+              {authMode === 'pin' ? (
+                <div className="relative">
+                  <input
+                    type={showPin ? 'text' : 'password'}
+                    maxLength={6}
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value)}
+                    placeholder="••••"
+                    disabled={isLoggingIn}
+                    className="w-full text-center tracking-[0.6em] text-2xl font-mono py-3.5 px-4 rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3.5 top-4 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                  >
+                    {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    type="email"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="acivit@coac.net"
+                    disabled={isLoggingIn}
+                    className="w-full text-center text-sm font-sans py-3.5 px-4 rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all"
+                  />
+                  <p className="text-[11px] text-stone-400 mt-1.5">Verifica si el email está registrado en <code>admin_users</code></p>
+                </div>
+              )}
 
               {pinError && (
                 <p className="text-red-600 text-xs mt-2.5 flex items-center justify-center gap-1.5">
@@ -505,9 +586,17 @@ export default function OwnerDashboard({
 
             <button
               type="submit"
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-sans font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-[0.99]"
+              disabled={isLoggingIn}
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-sans font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {t.dashPinBtn}
+              {isLoggingIn ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Verificando...</span>
+                </>
+              ) : (
+                <span>{t.dashPinBtn}</span>
+              )}
             </button>
           </form>
 
@@ -535,6 +624,22 @@ export default function OwnerDashboard({
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            {onRefreshBookings && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await onRefreshBookings();
+                  loadActivityData();
+                }}
+                disabled={isRefreshing}
+                className="px-3.5 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-sans font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
+                title="Actualizar datos desde la base de datos real"
+              >
+                <RefreshCw className={`w-4 h-4 text-stone-600 ${isRefreshing ? 'animate-spin text-[#1C2E15]' : ''}`} />
+                <span className="hidden sm:inline">{isRefreshing ? 'Sincronizando...' : 'Actualizar'}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setShowBlockModal(true)}
@@ -601,6 +706,24 @@ export default function OwnerDashboard({
           >
             <CalendarIcon className="w-4 h-4" />
             <span>{t.dashTabCalendar}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('activity')}
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+              activeTab === 'activity'
+                ? 'bg-[#1C2E15] text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span>{language === 'ca' ? 'Activitat' : language === 'en' ? 'Activity' : 'Actividad'}</span>
+            {activityList.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-700">
+                {activityList.length}
+              </span>
+            )}
           </button>
 
           <button
@@ -1419,6 +1542,90 @@ export default function OwnerDashboard({
                 {language === 'ca' ? 'Guardar configuració' : language === 'en' ? 'Save settings' : 'Guardar configuración'}
               </button>
             </form>
+          </div>
+        )}
+
+        {/* TAB: ACTIVITY LOG (Supabase: reservation_activity) */}
+        {activeTab === 'activity' && (
+          <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#1C2E15]/10 text-[#1C2E15] text-xs font-mono font-semibold">
+                    Supabase: reservation_activity
+                  </span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-stone-900">
+                  {language === 'ca' ? 'Historial d’Activitat i Auditoria' : language === 'en' ? 'Activity and Audit History' : 'Historial de Actividad y Auditoría'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={loadActivityData}
+                disabled={isLoadingActivity}
+                className="px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-medium flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingActivity ? 'animate-spin text-[#1C2E15]' : ''}`} />
+                <span>{isLoadingActivity ? 'Actualitzant...' : 'Recarregar'}</span>
+              </button>
+            </div>
+
+            {isLoadingActivity && activityList.length === 0 ? (
+              <div className="py-12 text-center text-stone-400 text-sm flex flex-col items-center gap-3">
+                <RefreshCw className="w-6 h-6 animate-spin text-[#1C2E15]" />
+                <span>Carregant registre d’auditoria...</span>
+              </div>
+            ) : activityList.length === 0 ? (
+              <div className="py-12 text-center text-stone-500 text-sm bg-[#FAFAF5] rounded-2xl border border-dashed border-stone-200">
+                <History className="w-8 h-8 text-stone-300 mx-auto mb-2" />
+                <p className="font-medium">Encara no hi ha activitat registrada.</p>
+                <p className="text-xs text-stone-400 mt-1">Qualsevol sol·licitud o canvi d'estat es guardarà a la base de dades.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {activityList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 rounded-2xl border border-stone-200/90 bg-[#FAFAF5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider ${
+                          item.action === 'created'
+                            ? 'bg-blue-100 text-blue-800'
+                            : item.action === 'status_changed'
+                            ? 'bg-purple-100 text-purple-800'
+                            : item.action === 'note_added'
+                            ? 'bg-amber-100 text-amber-800'
+                            : item.action === 'block_created' || item.action === 'block_deleted'
+                            ? 'bg-stone-200 text-stone-800'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {item.action}
+                        </span>
+                        {item.reservationId && (
+                          <span className="font-mono text-[11px] font-bold text-stone-600 bg-stone-100 px-2 py-0.5 rounded">
+                            {item.reservationId}
+                          </span>
+                        )}
+                        <span className="text-stone-400">per</span>
+                        <span className="font-semibold text-stone-800">{item.actor}</span>
+                      </div>
+
+                      {item.details && (
+                        <p className="text-stone-600 font-sans">
+                          {typeof item.details === 'string' ? item.details : JSON.stringify(item.details)}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right shrink-0 text-stone-400 font-mono text-[11px]">
+                      {new Date(item.createdAt).toLocaleString(language === 'ca' ? 'ca-ES' : language === 'en' ? 'en-US' : 'es-ES')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

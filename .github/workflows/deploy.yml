@@ -30,9 +30,14 @@ jobs:
           cp server.prod.js dist/server.js
           cp package.json dist/
           cp package-lock.json dist/
+          echo "SUPABASE_URL=https://cinuivjqxnsmcdqdrasy.supabase.co" > dist/.env
+          echo "SUPABASE_ANON_KEY=sb_publishable_pmlqfv43-CD33ot2pXFtmA_apcdGV9p" >> dist/.env
+          echo "FAMILY_PIN=1967" >> dist/.env
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           APP_URL: https://casatarongers1967.com
+          VITE_SUPABASE_URL: https://cinuivjqxnsmcdqdrasy.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_pmlqfv43-CD33ot2pXFtmA_apcdGV9p
 
       - name: Deploy via SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6

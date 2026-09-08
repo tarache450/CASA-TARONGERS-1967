@@ -1,8 +1,9 @@
 export type BookingStatus = 
-  | 'new_request'       // Nueva solicitud
-  | 'pending_review'    // Pendiente de revisión
-  | 'contacted'         // Contactada
-  | 'confirmed'         // Confirmada
+  | 'pending'           // Solicitud pendiente / nueva
+  | 'new_request'       // Compatibilidad con solicitud inicial
+  | 'pending_review'    // En revisión
+  | 'contacted'         // Contactada con el huésped
+  | 'confirmed'         // Confirmada oficialmente
   | 'rejected'          // Rechazada
   | 'cancelled'         // Cancelada
   | 'completed'         // Finalizada
@@ -11,12 +12,13 @@ export type BookingStatus =
 
 export interface BookingActivity {
   id: string;
-  timestamp: string;
+  timestamp?: string;
+  createdAt?: string;
   action: string;
   actor?: string;
   author?: string;
   description?: string;
-  details?: string;
+  details?: any;
 }
 
 export interface BookingNote {
@@ -44,9 +46,34 @@ export interface Booking {
   isManualBlock?: boolean;
   blockReason?: string;
   internalNotes?: BookingNote[];
-  history: BookingActivity[];
+  history?: BookingActivity[];
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface AvailabilityBlock {
+  id: string;
+  checkIn: string; // YYYY-MM-DD
+  checkOut: string; // YYYY-MM-DD
+  reason: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ReservationActivity {
+  id: string;
+  reservationId: string | null;
+  action: string;
+  actor: string;
+  details?: Record<string, any> | string;
+  createdAt: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: string;
 }
 
 export interface PropertySettings {

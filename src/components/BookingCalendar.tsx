@@ -29,7 +29,7 @@ interface BookingCalendarProps {
   settings: PropertySettings;
   onAddBooking: (
     booking: Omit<Booking, 'id' | 'createdAt' | 'history' | 'internalNotes'>
-  ) => void;
+  ) => Promise<string | void>;
   language: Language;
 }
 
@@ -301,7 +301,7 @@ export default function BookingCalendar({
   };
 
   // Form submission handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -391,11 +391,8 @@ export default function BookingCalendar({
     // Anti-double-submit lock
     setIsSubmitting(true);
 
-    const yearSuffix = new Date().getFullYear();
-    const generatedId = `REQ-${yearSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    setTimeout(() => {
-      onAddBooking({
+    try {
+      const serverBookingId = await onAddBooking({
         guestName: guestName.trim(),
         guestEmail: guestEmail.trim(),
         guestPhone: guestPhone.trim(),
@@ -408,9 +405,12 @@ export default function BookingCalendar({
         termsAccepted
       });
 
-      setSubmittedBookingId(generatedId);
+      setSubmittedBookingId(serverBookingId || 'REQ-CONFIRMED');
+    } catch (err: any) {
+      setFormError(err?.message || (language === 'ca' ? 'Error en processar la reserva.' : language === 'en' ? 'Error processing booking request.' : 'Error al procesar la reserva.'));
+    } finally {
       setIsSubmitting(false);
-    }, 600);
+    }
   };
 
   const handleResetForm = () => {
