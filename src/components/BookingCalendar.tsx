@@ -20,7 +20,8 @@ import {
   RotateCcw,
   Info,
   CalendarCheck,
-  Check
+  Check,
+  Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -701,6 +702,53 @@ export default function BookingCalendar({
                       <CalendarCheck className="w-4 h-4 text-accent-terracotta shrink-0" />
                       <span>{language === 'ca' ? 'Mínim: 2 nits' : language === 'en' ? 'Min: 2 nights' : 'Mínimo: 2 noches'}</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* INFO TARIFAS Card */}
+                <div id="info-tarifas" className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-2xs space-y-4">
+                  <div className="flex items-center gap-2.5 pb-3 border-b border-stone-100">
+                    <div className="w-8 h-8 rounded-lg bg-accent-terracotta/10 text-accent-terracotta flex items-center justify-center shrink-0">
+                      <Tag className="w-4 h-4 text-accent-terracotta" />
+                    </div>
+                    <div>
+                      <h4 className="font-serif text-lg font-bold text-stone-900">
+                        {t.tarifasTitle}
+                      </h4>
+                      <p className="text-xs text-stone-500">
+                        {language === 'ca' ? 'Tarifes transparents sense intermediaris' : language === 'en' ? 'Transparent rates without intermediaries' : 'Tarifas transparentes sin intermediarios'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* TARIFA 1 */}
+                    <div className="bg-[#FAFAF5] p-4 rounded-2xl border border-stone-200/80">
+                      <span className="text-xs font-serif font-bold uppercase tracking-wider text-accent-terracotta block mb-1.5">
+                        {t.tarifa1Title}
+                      </span>
+                      <p className="text-xs sm:text-sm text-stone-700 font-sans leading-relaxed">
+                        {t.tarifa1Item1}
+                      </p>
+                    </div>
+
+                    {/* TARIFA 2 */}
+                    <div className="bg-[#FAFAF5] p-4 rounded-2xl border border-stone-200/80">
+                      <span className="text-xs font-serif font-bold uppercase tracking-wider text-accent-terracotta block mb-1.5">
+                        {t.tarifa2Title}
+                      </span>
+                      <ul className="text-xs sm:text-sm text-stone-700 font-sans leading-relaxed space-y-1">
+                        <li>{t.tarifa2Item1}</li>
+                        <li>{t.tarifa2Item2}</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* LIMPIEZA */}
+                  <div className="pt-3 border-t border-dashed border-stone-200 text-center">
+                    <span className="text-xs font-mono font-semibold text-stone-700 bg-stone-100 px-3 py-1 rounded-full inline-block">
+                      {t.limpiezaNote}
+                    </span>
                   </div>
                 </div>
               </div>

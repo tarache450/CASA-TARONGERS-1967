@@ -28,11 +28,16 @@ jobs:
           touch dist/tmp/restart.txt
           cp server.prod.js dist/
           cp server.prod.js dist/server.js
+          cp -r server dist/
           cp package.json dist/
           cp package-lock.json dist/
           echo "SUPABASE_URL=https://cinuivjqxnsmcdqdrasy.supabase.co" > dist/.env
           echo "SUPABASE_ANON_KEY=sb_publishable_pmlqfv43-CD33ot2pXFtmA_apcdGV9p" >> dist/.env
           echo "FAMILY_PIN=1967" >> dist/.env
+          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> dist/.env
+          echo "RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL || 'Casa Tarongers 1967 <reservas@casatarongers1967.com>' }}" >> dist/.env
+          echo "FAMILY_RESERVATION_EMAIL=${{ secrets.FAMILY_RESERVATION_EMAIL || 'acivit@coac.net' }}" >> dist/.env
+          echo "PUBLIC_SITE_URL=https://casatarongers1967.com" >> dist/.env
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           APP_URL: https://casatarongers1967.com

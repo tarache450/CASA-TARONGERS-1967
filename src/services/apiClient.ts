@@ -1,5 +1,5 @@
 import { supabase, checkAdminUser, logReservationActivity } from './supabaseClient';
-import { Booking, BookingStatus, BookingNote, AvailabilityBlock, ReservationActivity } from '../types';
+import { Booking, BookingStatus, BookingNote, AvailabilityBlock, ReservationActivity, NotificationLog } from '../types';
 
 export interface BookingRequestPayload {
   guestName: string;
@@ -202,7 +202,41 @@ class ApiClient {
       throw new Error('Las fechas seleccionadas ya no están disponibles (confirmadas o bloqueadas para uso de la finca).');
     }
 
-    // Generate unique ID
+    // 1. Attempt real server endpoint first (executes server validation, Supabase insert, and Resend email dispatch)
+    try {
+      const resp = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        return {
+          success: true,
+          bookingId: data.bookingId,
+          booking: {
+            ...data.booking,
+            privacyAccepted: true,
+            termsAccepted: true,
+            status: 'pending'
+          }
+        };
+      }
+
+      // If server returned 4xx (validation, conflict, duplicate), throw that exact error
+      if (resp.status >= 400 && resp.status < 500) {
+        const errJson = await resp.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Error al procesar la reserva.');
+      }
+    } catch (apiErr: any) {
+      if (apiErr.message && !apiErr.message.includes('fetch') && !apiErr.message.includes('Network') && !apiErr.message.includes('Failed to fetch')) {
+        throw apiErr;
+      }
+      console.warn('[ApiClient] Server /api/bookings unavailable, executing direct Supabase fallback:', apiErr.message);
+    }
+
+    // Generate unique ID for fallback insert
     const year = new Date().getFullYear();
     const randomCode = Math.floor(1000 + Math.random() * 9000);
     const bookingId = `REQ-${year}-${randomCode}`;
@@ -222,6 +256,8 @@ class ApiClient {
       privacyAccepted: true,
       termsAccepted: true,
       internalNotes: [],
+      guestEmailSent: false,
+      adminEmailSent: false,
       history: [
         {
           id: `act-${Date.now()}`,
@@ -345,6 +381,11 @@ class ApiClient {
           internalNotes: r.internal_notes || [],
           privacyAccepted: r.privacy_accepted ?? true,
           termsAccepted: r.terms_accepted ?? true,
+          guestEmailSent: r.guest_email_sent ?? false,
+          guestEmailSentAt: r.guest_email_sent_at || null,
+          adminEmailSent: r.admin_email_sent ?? false,
+          adminEmailSentAt: r.admin_email_sent_at || null,
+          emailError: r.email_error || null,
           history: [],
           createdAt: r.created_at,
           updatedAt: r.updated_at
@@ -667,6 +708,54 @@ class ApiClient {
     } catch (e) {
       // ignore
     }
+    return [];
+  }
+
+  /**
+   * Admin: Get notification logs
+   */
+  async getNotificationLogs(): Promise<NotificationLog[]> {
+    if (!this.getToken()) {
+      throw new Error('Sesión requerida.');
+    }
+
+    // Try backend API first
+    try {
+      const res = await fetch('/api/admin/notifications', {
+        headers: {
+          'Authorization': `Bearer ${this.getToken()}`
+        }
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      // fallback
+    }
+
+    // Fallback: Supabase direct
+    try {
+      const { data, error } = await supabase
+        .from('notification_logs')
+        .select('*')
+        .order('sent_at', { ascending: false })
+        .limit(100);
+
+      if (!error && Array.isArray(data)) {
+        return data.map(n => ({
+          id: n.id,
+          reservationId: n.reservation_id,
+          emailType: n.email_type,
+          recipient: n.recipient,
+          status: n.status,
+          error: n.error,
+          sentAt: n.sent_at
+        }));
+      }
+    } catch (e) {
+      // ignore
+    }
+
     return [];
   }
 

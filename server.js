@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { sendNewReservationEmails, sendBookingConfirmedEmail, sendBookingRejectedEmail, sendBookingCancelledEmail } from './server/emailService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +26,7 @@ app.use((req, res, next) => {
 
 // =============================================================
 // DATABASE ADAPTER: Supabase 4 Tables + Local Disk Fallback
-// Tables: reservations, availability_blocks, reservation_activity, admin_users
+// Tables: reservations, availability_blocks, reservation_activity, admin_users, notification_logs
 // =============================================================
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cinuivjqxnsmcdqdrasy.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_pmlqfv43-CD33ot2pXFtmA_apcdGV9p';
@@ -35,6 +36,7 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'reservations.json');
 const BLOCKS_FILE = path.join(DATA_DIR, 'blocks.json');
 const ACTIVITY_FILE = path.join(DATA_DIR, 'activity.json');
+const NOTIFICATIONS_FILE = path.join(DATA_DIR, 'notifications.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -46,7 +48,7 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // Ensure local files exist
-[DB_FILE, BLOCKS_FILE, ACTIVITY_FILE].forEach(file => {
+[DB_FILE, BLOCKS_FILE, ACTIVITY_FILE, NOTIFICATIONS_FILE].forEach(file => {
   if (!fs.existsSync(file)) {
     try {
       fs.writeFileSync(file, JSON.stringify([], null, 2), 'utf-8');
@@ -55,6 +57,39 @@ if (!fs.existsSync(DATA_DIR)) {
     }
   }
 });
+
+// Helper: Log Email Notification
+async function logNotification(reservationId, emailType, recipient, status, error = null) {
+  const nowIso = new Date().toISOString();
+  const entry = {
+    id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    reservation_id: reservationId || null,
+    email_type: emailType,
+    recipient,
+    status,
+    error: error || null,
+    sent_at: nowIso
+  };
+
+  try {
+    await supabaseFetch('notification_logs', {
+      method: 'POST',
+      body: JSON.stringify(entry)
+    });
+  } catch (err) {}
+
+  try {
+    let list = [];
+    if (fs.existsSync(NOTIFICATIONS_FILE)) {
+      list = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf-8'));
+    }
+    list.unshift(entry);
+    if (list.length > 500) list = list.slice(0, 500);
+    fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('Could not write notification log locally:', e);
+  }
+}
 
 // --- HELPER: Supabase Request ---
 async function supabaseFetch(endpoint, options = {}) {
@@ -147,6 +182,11 @@ async function readAllBookings() {
           internalNotes: r.internal_notes || [],
           privacyAccepted: r.privacy_accepted,
           termsAccepted: r.terms_accepted,
+          guestEmailSent: r.guest_email_sent ?? false,
+          guestEmailSentAt: r.guest_email_sent_at || null,
+          adminEmailSent: r.admin_email_sent ?? false,
+          adminEmailSentAt: r.admin_email_sent_at || null,
+          emailError: r.email_error || null,
           createdAt: r.created_at,
           updatedAt: r.updated_at
         }));
@@ -194,6 +234,11 @@ async function insertReservationDb(booking) {
         internal_notes: booking.internalNotes || [],
         privacy_accepted: booking.privacyAccepted ?? true,
         terms_accepted: booking.termsAccepted ?? true,
+        guest_email_sent: booking.guestEmailSent || false,
+        guest_email_sent_at: booking.guestEmailSentAt || null,
+        admin_email_sent: booking.adminEmailSent || false,
+        admin_email_sent_at: booking.adminEmailSentAt || null,
+        email_error: booking.emailError || null,
         created_at: booking.createdAt,
         updated_at: booking.updatedAt || booking.createdAt
       })
@@ -218,6 +263,11 @@ async function updateReservationDb(booking) {
         message: booking.notes || booking.message || '',
         status: booking.status,
         internal_notes: booking.internalNotes || [],
+        guest_email_sent: booking.guestEmailSent ?? false,
+        guest_email_sent_at: booking.guestEmailSentAt || null,
+        admin_email_sent: booking.adminEmailSent ?? false,
+        admin_email_sent_at: booking.adminEmailSentAt || null,
+        email_error: booking.emailError || null,
         updated_at: new Date().toISOString()
       })
     });
@@ -535,18 +585,35 @@ app.post('/api/bookings', async (req, res) => {
       updatedAt: nowIso
     };
 
-    // Save to reservations
+    // 1. Save to reservations database
     bookings.unshift(newBooking);
     await saveAllBookingsLocally(bookings);
     await insertReservationDb(newBooking);
 
-    // Record in reservation_activity
+    // 2. Record in reservation_activity audit trail
     await logActivity(id, 'created', newBooking.guestName, {
       checkIn,
       checkOut,
       guestsCount: count,
       status: 'pending'
     });
+
+    // 3. Send email notifications via Resend (strictly AFTER database insertion)
+    let emailStatus = { guestEmailSent: false, adminEmailSent: false, error: null };
+    try {
+      emailStatus = await sendNewReservationEmails(newBooking, logNotification);
+    } catch (e) {
+      console.error('[Resend] Non-blocking email dispatch failure:', e.message);
+      emailStatus.error = e.message;
+    }
+
+    // 4. Update reservation with email dispatch flags
+    newBooking.guestEmailSent = emailStatus.guestEmailSent;
+    newBooking.guestEmailSentAt = emailStatus.guestEmailSent ? new Date().toISOString() : null;
+    newBooking.adminEmailSent = emailStatus.adminEmailSent;
+    newBooking.adminEmailSentAt = emailStatus.adminEmailSent ? new Date().toISOString() : null;
+    newBooking.emailError = emailStatus.error;
+    await updateReservationDb(newBooking);
 
     res.status(201).json({
       success: true,
@@ -557,7 +624,9 @@ app.post('/api/bookings', async (req, res) => {
         guestName: newBooking.guestName,
         checkIn: newBooking.checkIn,
         checkOut: newBooking.checkOut,
-        guestsCount: newBooking.guestsCount
+        guestsCount: newBooking.guestsCount,
+        guestEmailSent: newBooking.guestEmailSent,
+        adminEmailSent: newBooking.adminEmailSent
       }
     });
   } catch (err) {
@@ -651,6 +720,15 @@ app.patch('/api/admin/bookings/:id/status', requireFamilyAuth, async (req, res) 
       newStatus: status,
       note: note || null
     });
+
+    // If status changed to confirmed, trigger confirmation email
+    if (status === 'confirmed') {
+      try {
+        await sendBookingConfirmedEmail(target, logNotification);
+      } catch (err) {
+        console.warn('[Resend] Could not send confirmation email:', err.message);
+      }
+    }
 
     res.json({ success: true, booking: target });
   } catch (err) {
@@ -880,6 +958,69 @@ app.delete('/api/admin/bookings/:id', requireFamilyAuth, async (req, res) => {
   } catch (err) {
     console.error('Error deleting booking:', err);
     res.status(500).json({ error: 'Error al eliminar reserva.' });
+  }
+});
+
+// 12. Admin: Notification Logs
+app.get('/api/admin/notifications', requireFamilyAuth, async (req, res) => {
+  try {
+    let notifications = [];
+    try {
+      const resp = await supabaseFetch('notification_logs?select=*&order=sent_at.desc&limit=100');
+      if (resp.ok) {
+        notifications = await resp.json();
+      }
+    } catch (e) {
+      console.warn('[Database] Querying Supabase notification_logs failed:', e.message);
+    }
+
+    if (!Array.isArray(notifications) || notifications.length === 0) {
+      if (fs.existsSync(NOTIFICATIONS_FILE)) {
+        notifications = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf-8'));
+      }
+    }
+
+    res.json(notifications || []);
+  } catch (err) {
+    console.error('Error fetching notification logs:', err);
+    res.status(500).json({ error: 'Error al consultar logs de notificaciones.' });
+  }
+});
+
+// 13. Notifications: Resend trigger for newly created reservation (fallback/hook)
+app.post('/api/notifications/reservation-created', async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+    if (!bookingId) {
+      return res.status(400).json({ error: 'El identificador bookingId es obligatorio.' });
+    }
+
+    // Ensure the booking exists in the database first
+    const bookings = await readAllBookings();
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) {
+      return res.status(404).json({ error: 'La reserva no existe en la base de datos.' });
+    }
+
+    // Skip if already sent to avoid duplicates
+    if (booking.guestEmailSent && booking.adminEmailSent) {
+      return res.json({ success: true, message: 'Notificaciones ya enviadas previamente.', skipped: true });
+    }
+
+    const emailStatus = await sendNewReservationEmails(booking, logNotification);
+    booking.guestEmailSent = emailStatus.guestEmailSent;
+    booking.guestEmailSentAt = emailStatus.guestEmailSent ? new Date().toISOString() : null;
+    booking.adminEmailSent = emailStatus.adminEmailSent;
+    booking.adminEmailSentAt = emailStatus.adminEmailSent ? new Date().toISOString() : null;
+    booking.emailError = emailStatus.error;
+
+    await updateReservationDb(booking);
+    await saveAllBookingsLocally(bookings);
+
+    res.json({ success: true, emailStatus });
+  } catch (err) {
+    console.error('Error in notification dispatch endpoint:', err);
+    res.status(500).json({ error: 'Error interno al procesar el envío de notificaciones.' });
   }
 });
 

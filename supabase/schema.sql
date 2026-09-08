@@ -21,6 +21,11 @@ CREATE TABLE IF NOT EXISTS public.reservations (
     internal_notes JSONB DEFAULT '[]'::jsonb,
     privacy_accepted BOOLEAN DEFAULT TRUE,
     terms_accepted BOOLEAN DEFAULT TRUE,
+    guest_email_sent BOOLEAN DEFAULT FALSE,
+    guest_email_sent_at TIMESTAMPTZ,
+    admin_email_sent BOOLEAN DEFAULT FALSE,
+    admin_email_sent_at TIMESTAMPTZ,
+    email_error TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 
@@ -64,6 +69,17 @@ VALUES
     ('familia@casatarongers1967.com', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
+-- 5. TABLE: notification_logs (record of email dispatches via Resend)
+CREATE TABLE IF NOT EXISTS public.notification_logs (
+    id TEXT PRIMARY KEY,
+    reservation_id TEXT REFERENCES public.reservations(id) ON DELETE SET NULL,
+    email_type TEXT NOT NULL,
+    recipient TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('sent', 'failed', 'queued')),
+    error TEXT,
+    sent_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- =============================================================
 -- Indexes for Performance
 -- =============================================================
@@ -76,6 +92,9 @@ CREATE INDEX IF NOT EXISTS idx_availability_blocks_dates ON public.availability_
 CREATE INDEX IF NOT EXISTS idx_reservation_activity_resid ON public.reservation_activity (reservation_id);
 CREATE INDEX IF NOT EXISTS idx_reservation_activity_created_at ON public.reservation_activity (created_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_notification_logs_resid ON public.notification_logs (reservation_id);
+CREATE INDEX IF NOT EXISTS idx_notification_logs_sent_at ON public.notification_logs (sent_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_admin_users_email ON public.admin_users (email);
 
 -- =============================================================
@@ -85,8 +104,17 @@ ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.availability_blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reservation_activity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_logs ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if any
+DROP POLICY IF EXISTS "Full access to notification logs" ON public.notification_logs;
+CREATE POLICY "Full access to notification logs"
+ON public.notification_logs
+FOR ALL
+TO anon, authenticated
+USING (true)
+WITH CHECK (true);
+
 DROP POLICY IF EXISTS "Public can insert pending requests" ON public.reservations;
 DROP POLICY IF EXISTS "Public can view availability dates" ON public.reservations;
 DROP POLICY IF EXISTS "Full access for authenticated or anon service" ON public.reservations;

@@ -47,8 +47,23 @@ export interface Booking {
   blockReason?: string;
   internalNotes?: BookingNote[];
   history?: BookingActivity[];
+  guestEmailSent?: boolean;
+  guestEmailSentAt?: string | null;
+  adminEmailSent?: boolean;
+  adminEmailSentAt?: string | null;
+  emailError?: string | null;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface NotificationLog {
+  id: string;
+  reservationId?: string | null;
+  emailType: string;
+  recipient: string;
+  status: 'sent' | 'failed' | 'queued';
+  error?: string | null;
+  sentAt: string;
 }
 
 export interface AvailabilityBlock {

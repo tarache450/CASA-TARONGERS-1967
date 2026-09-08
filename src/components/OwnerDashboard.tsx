@@ -1198,12 +1198,19 @@ export default function OwnerDashboard({
                         </td>
                         <td className="py-3.5 px-3">
                           <div className="font-semibold text-stone-900">{b.guestName}</div>
-                          {b.internalNotes && b.internalNotes.length > 0 && (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium mt-0.5">
-                              <FileText className="w-2.5 h-2.5" />
-                              {b.internalNotes.length} {t.notesTitle.toLowerCase()}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                            {b.internalNotes && b.internalNotes.length > 0 && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium">
+                                <FileText className="w-2.5 h-2.5" />
+                                {b.internalNotes.length} {t.notesTitle.toLowerCase()}
+                              </span>
+                            )}
+                            {b.guestEmailSent && (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium" title="Email de recepción enviado">
+                                <Check className="w-2.5 h-2.5" /> Email
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3.5 px-3 font-mono text-stone-700">
                           <div>{b.checkIn} &rarr; {b.checkOut}</div>
@@ -1784,6 +1791,24 @@ export default function OwnerDashboard({
                       </div>
                     </div>
                   )}
+
+                  {/* Resend Email Dispatch Status */}
+                  <div className="pt-3 border-t border-stone-100 flex flex-col gap-1.5 text-xs">
+                    <span className="text-stone-400 font-medium text-[11px]">Notificaciones por email (Resend):</span>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${activeSelectedBooking.guestEmailSent ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-600'}`}>
+                        <Mail className="w-3 h-3" /> Huésped: {activeSelectedBooking.guestEmailSent ? 'Enviado ✓' : 'No enviado'}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${activeSelectedBooking.adminEmailSent ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-600'}`}>
+                        <Mail className="w-3 h-3" /> Familia: {activeSelectedBooking.adminEmailSent ? 'Enviado ✓' : 'No enviado'}
+                      </span>
+                    </div>
+                    {activeSelectedBooking.emailError && (
+                      <span className="text-[10px] text-red-600 bg-red-50 p-1.5 rounded font-mono">
+                        Error: {activeSelectedBooking.emailError}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Guest Message */}
