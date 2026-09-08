@@ -84,12 +84,9 @@ export default function OwnerDashboard({
       return false;
     }
   });
-  const [authMode, setAuthMode] = useState<'pin' | 'email'>('pin');
-  const [adminEmail, setAdminEmail] = useState('');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [showPin, setShowPin] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'calendar' | 'activity' | 'settings'>('dashboard');
@@ -164,50 +161,33 @@ export default function OwnerDashboard({
 
   const guestsWord = language === 'en' ? 'guests' : 'huéspedes';
 
-  // Login handler connected to backend & admin_users verification
-  const handleLogin = async (e: React.FormEvent) => {
+  // Login handler strictly requiring family PIN 1967
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setPinError('');
 
     const cleanPin = pin.trim();
 
-    // 1. PIN verification (1967) - Instant guaranteed access
-    if (authMode === 'pin') {
-      if (cleanPin === '1967') {
-        const sessionToken = `family_session_${Date.now()}`;
-        apiClient.setToken(sessionToken);
-        try {
-          localStorage.setItem('tarongers_authenticated', 'true');
-        } catch (err) {}
-        setIsAuthenticated(true);
-
-        if (onRefreshBookings) {
-          onRefreshBookings().catch(err => console.warn('Background refresh error:', err));
-        }
-        loadActivityData();
-        return;
-      } else {
-        setPinError(t.dashPinError);
-        return;
-      }
-    }
-
-    // 2. Email verification in admin_users table
-    setIsLoggingIn(true);
-    try {
-      await apiClient.verifyFamilyPin(undefined, adminEmail.trim().toLowerCase());
+    if (cleanPin === '1967') {
+      const sessionToken = `family_session_${Date.now()}`;
+      apiClient.setToken(sessionToken);
       try {
         localStorage.setItem('tarongers_authenticated', 'true');
       } catch (err) {}
       setIsAuthenticated(true);
+
       if (onRefreshBookings) {
         onRefreshBookings().catch(err => console.warn('Background refresh error:', err));
       }
       loadActivityData();
-    } catch (err: any) {
-      setPinError(err.message || 'Correo no autorizado en admin_users.');
-    } finally {
-      setIsLoggingIn(false);
+    } else {
+      setPinError(
+        language === 'ca'
+          ? 'PIN incorrecte. El PIN familiar és 1967.'
+          : language === 'en'
+          ? 'Incorrect PIN. The family PIN is 1967.'
+          : 'PIN incorrecto. El PIN familiar es 1967.'
+      );
     }
   };
 
@@ -218,7 +198,6 @@ export default function OwnerDashboard({
     } catch (err) {}
     setIsAuthenticated(false);
     setPin('');
-    setAdminEmail('');
   };
 
   // Copy helper
@@ -548,95 +527,123 @@ export default function OwnerDashboard({
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-[11px] font-mono mb-3">
-            <span>Casa Tarongers 1967</span>
+            <span>Casa Tarongers 1967 · Acceso Familiar</span>
           </div>
 
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mb-2">
             {t.familyDashboard}
           </h2>
-          <p className="text-stone-500 text-xs sm:text-sm mb-5 leading-relaxed">
-            {authMode === 'pin' ? t.dashPinDesc : 'Accede utilizando tu correo autorizado en la tabla admin_users de Supabase.'}
+          <p className="text-stone-500 text-xs sm:text-sm mb-6 leading-relaxed">
+            {language === 'ca'
+              ? 'Introdueix el PIN de seguretat familiar (1967) per accedir al panell de gestió.'
+              : language === 'en'
+              ? 'Enter the family security PIN (1967) to access the management dashboard.'
+              : 'Introduce el PIN de seguridad familiar (1967) para acceder al panel de gestión.'}
           </p>
 
-          {/* Auth Mode Toggle */}
-          <div className="flex bg-stone-100 p-1 rounded-xl mb-4 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => { setAuthMode('pin'); setPinError(''); }}
-              className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${authMode === 'pin' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500 hover:text-stone-900'}`}
-            >
-              PIN Familiar (1967)
-            </button>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('email'); setPinError(''); }}
-              className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${authMode === 'email' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500 hover:text-stone-900'}`}
-            >
-              Email Autorizado
-            </button>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              {authMode === 'pin' ? (
-                <div className="relative">
-                  <input
-                    type={showPin ? 'text' : 'password'}
-                    maxLength={6}
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    placeholder="••••"
-                    disabled={isLoggingIn}
-                    className="w-full text-center tracking-[0.6em] text-2xl font-mono py-3.5 px-4 rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPin(!showPin)}
-                    className="absolute right-3.5 top-4 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
-                  >
-                    {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <input
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="acivit@coac.net"
-                    disabled={isLoggingIn}
-                    className="w-full text-center text-sm font-sans py-3.5 px-4 rounded-2xl border border-stone-300 focus:ring-2 focus:ring-[#1C2E15]/20 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all"
-                  />
-                  <p className="text-[11px] text-stone-400 mt-1.5">Verifica si el email está registrado en <code>admin_users</code></p>
-                </div>
-              )}
+              <div className="relative max-w-[260px] mx-auto">
+                <input
+                  type={showPin ? 'text' : 'password'}
+                  maxLength={4}
+                  autoFocus
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={pin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                    setPin(val);
+                    if (pinError) setPinError('');
+                  }}
+                  placeholder="••••"
+                  className="w-full text-center tracking-[0.5em] text-3xl font-mono py-3.5 px-4 rounded-2xl border-2 border-stone-300 focus:ring-4 focus:ring-[#1C2E15]/15 focus:border-[#1C2E15] outline-none bg-stone-50/60 transition-all font-bold"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  className="absolute right-3 top-4 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                  title={showPin ? 'Ocultar PIN' : 'Mostrar PIN'}
+                >
+                  {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
 
               {pinError && (
-                <p className="text-red-600 text-xs mt-2.5 flex items-center justify-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" />
+                <p className="text-red-600 text-xs mt-3 flex items-center justify-center gap-1.5 font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
                   {pinError}
                 </p>
               )}
             </div>
 
+            {/* Quick digit pad for convenient touch/mobile access */}
+            <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto pt-1">
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                <button
+                  key={digit}
+                  type="button"
+                  onClick={() => {
+                    if (pin.length < 4) {
+                      const newPin = pin + digit;
+                      setPin(newPin);
+                      if (pinError) setPinError('');
+                    }
+                  }}
+                  className="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-mono font-bold text-lg active:scale-95 transition-all cursor-pointer"
+                >
+                  {digit}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setPin('');
+                  setPinError('');
+                }}
+                className="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-500 font-sans font-bold text-xs uppercase active:scale-95 transition-all cursor-pointer"
+              >
+                {language === 'ca' ? 'Esborrar' : language === 'en' ? 'Clear' : 'Borrar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (pin.length < 4) {
+                    const newPin = pin + '0';
+                    setPin(newPin);
+                    if (pinError) setPinError('');
+                  }
+                }}
+                className="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-mono font-bold text-lg active:scale-95 transition-all cursor-pointer"
+              >
+                0
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPin('1967');
+                  if (pinError) setPinError('');
+                }}
+                className="py-2.5 rounded-xl bg-accent-terracotta/10 hover:bg-accent-terracotta/20 text-accent-terracotta font-mono font-bold text-xs active:scale-95 transition-all cursor-pointer"
+                title="Introducir PIN 1967"
+              >
+                1967
+              </button>
+            </div>
+
             <button
               type="submit"
-              disabled={isLoggingIn}
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-sans font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#1C2E15] text-white font-sans font-semibold text-sm hover:bg-[#121C0E] transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"
             >
-              {isLoggingIn ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Verificando...</span>
-                </>
-              ) : (
-                <span>{t.dashPinBtn}</span>
-              )}
+              <Lock className="w-4 h-4" />
+              <span>
+                {language === 'ca' ? 'Entrar al Panell (PIN 1967)' : language === 'en' ? 'Access Dashboard (PIN 1967)' : 'Entrar al Panel (PIN 1967)'}
+              </span>
             </button>
           </form>
 
           <p className="text-[11px] text-stone-400 mt-6 font-mono">
-            {language === 'ca' ? 'Ús exclusiu de la família Civit' : language === 'en' ? 'Civit family exclusive access' : 'Uso exclusivo de la familia Civit'}
+            {language === 'ca' ? 'Ús exclusiu de la família Civit · PIN: 1967' : language === 'en' ? 'Civit family exclusive access · PIN: 1967' : 'Uso exclusivo de la familia Civit · PIN: 1967'}
           </p>
         </div>
       </section>
