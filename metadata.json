@@ -1,0 +1,6 @@
+{
+  "name": "Casa Tarongers 1967",
+  "description": "Premium villa listing and family rental management portal for Casa Tarongers 1967 in Gelida, Catalunya.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
